@@ -1,0 +1,1 @@
+print("PETRUSH_BUILD_PROOF_2026")

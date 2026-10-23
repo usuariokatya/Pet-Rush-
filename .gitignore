@@ -1,0 +1,24 @@
+# Git Ignore for Pet Rush!
+# Binaries and Large Files
+*.rbxlx
+*.rbxl
+*.rbxm
+*.rbxmx
+*.obj
+*.fbx
+*.blend
+
+# OS and IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Caches and Temp
+*.log
+tmp/
+dist/
+build/
+
+# Secrets
+*.env
+.secrets

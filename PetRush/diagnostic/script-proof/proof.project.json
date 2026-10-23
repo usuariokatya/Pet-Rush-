@@ -1,0 +1,12 @@
+{
+  "name": "ScriptProof",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Main": {
+        "$path": "Main.server.luau"
+      }
+    }
+  }
+}

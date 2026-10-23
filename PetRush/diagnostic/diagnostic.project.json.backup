@@ -1,0 +1,9 @@
+{
+  "name": "PetRushDiagnostic",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "name": "PetRushBuild",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Main": {
+        "$path": "ServerScriptService/Main.server.luau"
+      },
+      "Systems": {
+        "$className": "Folder",
+        "PlayerData": {
+          "$path": "ServerScriptService/Systems/PlayerData.server.luau"
+        },
+        "Collectibles": {
+          "$path": "ServerScriptService/Systems/Collectibles.server.luau"
+        },
+        "Levels": {
+          "$path": "ServerScriptService/Systems/Levels.server.luau"
+        },
+        "Pets": {
+          "$path": "ServerScriptService/Systems/Pets.server.luau"
+        },
+        "Shop": {
+          "$path": "ServerScriptService/Systems/Shop.server.luau"
+        },
+        "Zones": {
+          "$path": "ServerScriptService/Systems/Zones.server.luau"
+        }
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$className": "Folder",
+        "GameConfig": {
+          "$path": "ReplicatedStorage/Shared/GameConfig.luau"
+        },
+        "PetData": {
+          "$path": "ReplicatedStorage/Shared/PetData.luau"
+        },
+        "Rewards": {
+          "$path": "ReplicatedStorage/Shared/Rewards.luau"
+        },
+        "Remotes": {
+          "$path": "ReplicatedStorage/Shared/Remotes.luau"
+        }
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "SpawnLocation": {
+        "$className": "SpawnLocation"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "PetRushClient": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/PetRushClient/ClientMain.client.luau"
+        },
+        "HUDController": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/Controllers/HUDController.client.luau"
+        },
+        "CollectController": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/Controllers/CollectController.client.luau"
+        },
+        "PetFollowController": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/Controllers/PetFollowController.client.luau"
+        },
+        "ShopController": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/Controllers/ShopController.client.luau"
+        },
+        "FeedbackController": {
+          "$className": "LocalScript",
+          "$path": "StarterPlayer/StarterPlayerScripts/Controllers/FeedbackController.client.luau"
+        }
+      }
+    }
+  }
+}

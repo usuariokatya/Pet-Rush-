@@ -1,0 +1,11 @@
+{
+	"name": "PetRush",
+	"version": "1.0.0",
+	"roots": {
+		"game": "game",
+		"workspace": "Workspace"
+	},
+	"binaryName": "luau",
+	"autoDetect": true,
+	"all": true
+}
