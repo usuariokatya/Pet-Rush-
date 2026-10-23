@@ -39,7 +39,7 @@ local function createCoins()
 	local coinTemplate = Instance.new("Part")
 	coinTemplate.Name = "Coin"
 	coinTemplate.Size = Vector3.new(1, 1, 1)
-	coinTemplate.Shape = Enum.PartBall
+	coinTemplate.Shape = Enum.PartType.Ball
 	coinTemplate.Anchored = true
 	coinTemplate.Material = Enum.Material.Neon
 	coinTemplate.Color = BrickColor.new("Gold").Color
