@@ -1,0 +1,24 @@
+{
+  "name": "PetRushPrototype",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace"
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "ServerScript": {
+        "$path": "ServerScript.server.luau"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "HUDController": {
+          "$path": "HUDController.client.luau"
+        }
+      }
+    }
+  }
+}
