@@ -10,31 +10,30 @@ El proyecto sigue una estructura modular compatible con Rojo para gestión de ve
 PetRush/
 ├── default.project.json
 ├── README.md
-├── src/
-│   ├── ReplicatedStorage/
-│   │   └── Shared/
-│   │       ├── GameConfig.luau
-│   │       ├── Remotes.luau
-│   │       ├── Rewards.luau
-│   │       └── PetData.luau
-│   ├── ServerScriptService/
-│   │   ├── Main.server.luau
-│   │   ├── Systems/
+├── ReplicatedStorage/
+│   └── Shared/
+│       ├── GameConfig.luau
+│       ├── Remotes.luau
+│       ├── Rewards.luau
+│       └── PetData.luau
+├── ServerScriptService/
+│   ├── Main.server.luau
+│   ├── Systems/
 │   │       ├── PlayerData.server.luau
 │   │       ├── Collectibles.server.luau
 │   │       ├── Pets.server.luau
 │   │       ├── Shop.server.luau
 │   │       ├── Levels.server.luau
 │   │       └── Zones.server.luau
-│   └── StarterPlayer/
-│       └── StarterPlayerScripts/
-│           ├── ClientMain.client.luau
-│           ├── Controllers/
-│               ├── HUDController.client.luau
-│               ├── CollectController.client.luau
-│               ├── PetFollowController.client.luau
-│               ├── ShopController.client.luau
-│               └── FeedbackController.client.luau
+└── StarterPlayer/
+    └── StarterPlayerScripts/
+        ├── ClientMain.client.luau
+        ├── Controllers/
+        │       ├── HUDController.client.luau
+        │       ├── CollectController.client.luau
+        │       ├── PetFollowController.client.luau
+        │       ├── ShopController.client.luau
+        │       └── FeedbackController.client.luau
 ```
 
 ## Cómo abrir el proyecto
@@ -55,7 +54,7 @@ Rojo es una herramienta de código abierto que sincroniza tus archivos Luau con 
    - Esto creará un archivo `.gitignore` y configuración de Rojo en el lugar
 
 3. **Sincronizar el proyecto**:
-   - Mueve la carpeta `PetRush/src/` al lugar de Roblox Studio o configura Rojo para apunte a ella
+   - Mueve la carpeta `PetRush/` al lugar de Roblox Studio o configura Rojo para apunte a ella
    - Ejecuta: `rojo sync`
    - Rojo copiará automáticamente todos los archivos `.luau` a la ubicación correcta en Roblox Studio
 
