@@ -17,6 +17,7 @@ local MultiplierConfig = require(script.Parent:WaitForChild("MultiplierConfig"))
 -- Configuración de la tienda
 local SHOP_PRICES = {
 	["ComboMultiplier"] = 100, -- Cuesta 100 Candies desbloquear multiplicador
+	["ExtraPetSlot"] = 300, -- Cuesta 300 Coins desbloquear slot extra
 }
 
 -- Configuración de Huevos con rarezas definidas
@@ -480,6 +481,31 @@ local function processShopPurchase(player, purchaseType)
 		player.CookieMultiplier = 1.5 -- Multiplicador de combo
 
 		return true, "Multiplicador desbloqueado: 1.5x"
+
+	elseif purchaseType == "ExtraPetSlot" then
+		local slots = player:FindFirstChild("ExtraPetSlots")
+		if not slots then
+			slots = Instance.new("IntValue")
+			slots.Name = "ExtraPetSlots"
+			slots.Value = 0 -- 0 = tiene 3 slots base, este valor es extras desbloqueados
+			slots.Parent = player
+		end
+
+		local coins = player.leaderstats:FindFirstChild("Coins")
+		if not coins then return false, "Error: no hay leaderstats" end
+
+		-- Validar que el jugador tenga suficientes coins
+		if coins.Value < SHOP_PRICES["ExtraPetSlot"] then
+			return false, "No tienes suficientes Coins"
+		end
+
+		-- Descontar coins
+		coins.Value = coins.Value - SHOP_PRICES["ExtraPetSlot"]
+
+		-- Desbloquear slot extra
+		slots.Value = slots.Value + 1
+
+		return true, "¡Slot de mascota extra desbloqueado! Ahora puedes equipar 4 mascotas"
 	end
 
 	return false, "Tipo de compra no válido"
@@ -605,10 +631,10 @@ local function givePetToPlayer(player, petName, rarity)
 		petsFolder.Parent = player
 	end
 
-	-- Verificar si hay slot disponible (máximo 3 mascotas equipadas)
+	-- Verificar límite de mascotas equipadas
 	local equippedCount = 0
-	local maxSlots = 3
-	for _, child in pairs(player.Pets:GetChildren()) do
+	local maxSlots = 3 + (player:FindFirstChild("ExtraPetSlots") and player.ExtraPetSlots.Value or 0)
+	for _, child in pairs(petsFolder:GetChildren()) do
 		if child:IsA("StringValue") then
 			equippedCount = equippedCount + 1
 		end
@@ -764,10 +790,10 @@ local function givePetToPlayer(player, petName, rarity)
 		petsFolder.Parent = player
 	end
 
-	-- Verificar si hay slot disponible (máximo 3 mascotas equipadas)
+	-- Verificar límite de mascotas equipadas
 	local equippedCount = 0
-	local maxSlots = 3
-	for _, child in pairs(player.Pets:GetChildren()) do
+	local maxSlots = 3 + (player:FindFirstChild("ExtraPetSlots") and player.ExtraPetSlots.Value or 0)
+	for _, child in pairs(petsFolder:GetChildren()) do
 		if child:IsA("StringValue") then
 			equippedCount = equippedCount + 1
 		end

@@ -400,3 +400,27 @@ end
 			remote:FireServer("UnequipPet", "")
 		end
 	end)
+
+-- Botón Tienda: Slot Extra
+	local extraSlotButton = petPanel:FindFirstChild("ExtraSlotButton")
+	if not extraSlotButton then
+		extraSlotButton = Instance.new("TextButton")
+		extraSlotButton.Name = "ExtraSlotButton"
+		extraSlotButton.Size = UDim2.new(0, 100, 0, 25)
+		extraSlotButton.Position = UDim2.new(0, 5, 0.90, 0)
+		extraSlotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		extraSlotButton.BackgroundTransparency = 0.3
+		extraSlotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		extraSlotButton.TextSize = 11
+		extraSlotButton.Font = Enum.Font.SourceSans
+		extraSlotButton.Text = "Extra Slot (300C) - Desbloquea 4ª mascota"
+		extraSlotButton.Parent = petPanel
+	end
+
+	-- Conectar clic Extra Slot
+	extraSlotButton.MouseButton1Click:Connect(function()
+		local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+		if remote then
+			remote:FireServer("ExtraPetSlot", "")
+		end
+	end)
