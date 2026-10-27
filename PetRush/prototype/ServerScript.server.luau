@@ -8,14 +8,30 @@ local Workspace = game:GetService("Workspace")
 -- Configuración
 local COIN_VALUE = 1
 local CANDY_VALUE = 1
-local PET_VALUE = 1
 local RESPAWN_TIME = 5
+
+-- Configuración de la tienda
+local SHOP_PRICES = {
+	["ComboMultiplier"] = 100, -- Cuesta 100 Candies desbloquear multiplicador
+}
 
 -- Flag para asegurar que init solo se ejecuta una vez
 local initialized = false
 
 -- Tabla para rastrear mascotas y conexiones por jugador
 local playerPets = {}
+
+-- RemoteEvent para la tienda (se crea automáticamente si no existe)
+local function getShopRemote()
+	local replicatedStorage = game:GetService("ReplicatedStorage")
+	local remote = replicatedStorage:FindFirstChild("ShopRemote")
+	if not remote then
+		remote = Instance.new("RemoteEvent")
+		remote.Name = "ShopRemote"
+		remote.Parent = replicatedStorage
+	end
+	return remote
+end
 
 -- Crear Floor y SpawnLocation
 local function setupMap()
@@ -152,7 +168,10 @@ local function setupPlayer(player)
 	petValue.Value = ""
 	petValue.Parent = leaderstats
 
-	-- Configurar conexiones para esta personaje
+	-- Tabla para rastrear mascotas y conexiones por jugador
+	playerPets[player] = {}
+
+	-- Configurar conexiones para personaje
 	-- Limpiar mascota anterior al reaparecer
 	local function onCharacterRemoving(character)
 		-- Limpiar la mascota visual si existe en el personaje
@@ -204,21 +223,7 @@ local function setupPlayer(player)
 	petValue.Name = "EquippedPet"
 	petValue.Value = ""
 	petValue.Parent = leaderstats
-
-	-- Almacenar la conexión para limpieza futura
-	playerPets[player] = player.CharacterAdded:Connect(onCharacterAdded)
-	player.CharacterRemoving:Connect(function()
-		if playerPets[player] then
-			playerPets[player]:Disconnect()
-			playerPets[player] = nil
-		end
-		if player.Character then
-			local pet = player.Character:FindFirstChild("StarterPet")
-			if pet then
-				pet:Destroy()
-			end
-		end
-	end)
+end
 
 -- Lógica de colección de monedas
 local function onCoinTouched(coin, player)
@@ -326,65 +331,114 @@ local function setupCandyCollection(candyPositions)
 	end
 end
 
--- Crear mascota inicial en el mundo
-local function createStarterPet()
-	local petTemplate = Instance.new("Part")
-	petTemplate.Name = "StarterPet"
-	petTemplate.Size = Vector3.new(2, 2, 2)
-	petTemplate.Shape = Enum.PartType.Ball
-	petTemplate.Anchored = true
-	petTemplate.Material = Enum.Material.Neon
-	petTemplate.Color = BrickColor.new("Medium stone grey").Color
-	petTemplate.CanCollide = false
+-- Función para procesar compra en la tienda
+local function processShopPurchase(player, purchaseType)
+	if purchaseType == "ComboMultiplier" then
+		local candies = player.leaderstats:FindFirstChild("Candies")
+		if not candies then return false, "No tienes Candies" end
 
-	-- Dar valor a la mascota mediante un valor de instancia
-	local petName = Instance.new("StringValue")
-	petName.Name = "PetName"
-	petName.Value = "Puppy"
-	petName.Parent = petTemplate
+		-- Validar que el jugador tenga suficientes candies
+		if candies.Value < SHOP_PRICES["ComboMultiplier"] then
+			return false, "No tienes suficientes Candies"
+		end
 
-	-- Posicionar mascota en el mundo
-	petTemplate.CFrame = CFrame.new(0, 5, 0)
-	petTemplate.Parent = Workspace
-end
+		-- Descontar candies
+		candies.Value = candies.Value - SHOP_PRICES["ComboMultiplier"]
 
--- Inicialización (solo una vez al iniciar el servidor)
-local function init()
-	if initialized then return end
-	initialized = true
+		-- Aplicar multiplicador
+		player.CookieMultiplier = 1.5 -- Multiplicador de combo
 
-	setupMap()
-	local coins = createCoins()
-	setupCoinCollection(coins)
-
-	local candies = createCandies()
-	setupCandyCollection(candies)
-
-	createStarterPet()
-
-	print("Prototipo servidor inicializado - 20 monedas, 10 caramelos y mascota inicial")
-end
-
--- Conectar cuando un jugador se une
--- Configura leaderstats y mascota al unirse Y aplica a jugadores ya presentes
-Players.PlayerAdded:Connect(function(player)
-	setupPlayer(player)
-	-- Dar mascota inicial al unirse
-	local success, err = pcall(giveStartingPet, player)
-	if not success then
-		warn("Error giving starting pet: " .. tostring(err))
+		return true, "Multiplicador desbloqueado: 1.5x"
 	end
+
+	return false, "Tipo de compra no válido"
+end
+
+-- Función para dar mascota inicial al jugador
+local function giveStartingPet(player)
+	-- Crear carpeta de mascotas si no existe
+	local petsFolder = player:FindFirstChild("Pets")
+	if not petsFolder then
+		petsFolder = Instance.new("Folder")
+		petsFolder.Name = "Pets"
+		petsFolder.Parent = player
+	end
+
+	-- Crear la mascota inicial en la carpeta del jugador
+	local petValue = Instance.new("StringValue")
+	petValue.Name = "PetName"
+	petValue.Value = "Puppy"
+	petValue.Parent = petsFolder
+
+	-- Equipar la mascota automaticamente
+	player.leaderstats.EquippedPet.Value = "Puppy"
+end
+
+-- Función para equipar la mascota
+local function equipPet(player, petName)
+	local equipped = player.leaderstats:FindFirstChild("EquippedPet")
+	if not equipped then return end
+
+	-- Evitar equipar la misma mascota dos veces
+	if equipped.Value == petName then return end
+
+	equipped.Value = petName
+	print("Mascota equipada: " .. petName)
+
+	-- Aquí podría ir lógica visual para mostrar la mascota
+end
+
+-- Función para desequipar la mascota
+local function unequipPet(player)
+	local equipped = player.leaderstats:FindFirstChild("EquippedPet")
+	if not equipped then return end
+
+	equipped.Value = ""
+	print("Mascota desequipada")
+end
+
+-- Listeners de evento para la tienda vía RemoteEvent
+local function onShopPurchase(player, purchaseType)
+	local success, message = processShopPurchase(player, purchaseType)
+	local remote = getShopRemote()
+	-- Fire client with result
+	if remote then
+		remote:FireClient(player, success, message)
+	end
+	return success, message
+end
+
+Players.PlayerAdded:Connect(function(player)
+	-- Inicializar datos del jugador
+	setupPlayer(player)
+	giveStartingPet(player)
 end)
 
 -- Aplicar setup a jugadores ya en el servidor (al cargar el lugar)
 for _, player in pairs(Players:GetPlayers()) do
 	setupPlayer(player)
-	-- Dar mascota inicial a jugadores ya presentes
-	local success, err = pcall(giveStartingPet, player)
-	if not success then
-		warn("Error giving starting pet to existing player: " .. tostring(err))
-	end
-end)
+	giveStartingPet(player)
+end
 
 -- Ejecutar init una sola vez al cargar el servidor
+function init()
+	-- Configurar mapa
+	setupMap()
+
+	-- Crear monedas y caramelos
+	local coinPositions = createCoins()
+	local candyPositions = createCandies()
+
+	-- Conectar colecciones
+	setupCoinCollection(coinPositions)
+	setupCandyCollection(candyPositions)
+
+	-- Crear mascota en el mundo
+	createStarterPet()
+
+	-- Marcar como inicializado
+	initialized = true
+end
+
+-- Ejecutar init
 init()
