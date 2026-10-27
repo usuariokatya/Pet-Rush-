@@ -186,12 +186,19 @@ local function setupPlayer(player)
 		end
 	end
 
-	-- Cuando el personaje reaparece, reinicializar la mascota
+	-- Cuando el personaje reaparece, reinicializar la mascota visual
 	local function onCharacterAdded(character)
-		-- Colocar la mascota sobre el personaje
+		-- Posicionar la mascota visual sobre el humanoidrootpart
+		local visualPet = character:FindFirstChild("VisualPet")
+		if visualPet then
+			local hrp = character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				visualPet.CFrame = hrp.CFrame * CFrame.new(0, 2, 0)
+			end
+		end
+		-- Also position the world pet if it exists
 		local pet = character:FindFirstChild("StarterPet")
 		if pet then
-			-- Posicionar la mascota sobre el humanoidrootpart
 			local hrp = character:FindFirstChild("HumanoidRootPart")
 			if hrp then
 				pet.CFrame = hrp.CFrame * CFrame.new(0, 2, 0)
@@ -369,6 +376,39 @@ local function giveStartingPet(player)
 	petValue.Name = "PetName"
 	petValue.Value = "Puppy"
 	petValue.Parent = petsFolder
+
+	-- Equipar la mascota automaticamente
+	player.leaderstats.EquippedPet.Value = "Puppy"
+
+	-- Crear parte visual de la mascota que seguirá al jugador
+	local visualPet = player:FindFirstChild("VisualPet")
+	if not visualPet then
+		visualPet = Instance.new("Part")
+		visualPet.Name = "VisualPet"
+		visualPet.Size = Vector3.new(2, 2, 2)
+		visualPet.Shape = Enum.PartType.Ball
+		visualPet.Anchored = false
+		visualPet.Material = Enum.Material.Neon
+		visualPet.Color = BrickColor.new("Medium stone grey").Color
+		visualPet.CanCollide = false
+		visualPet.Parent = player
+	end
+
+	-- Posicionar mascota visual al inicio
+	local function positionVisualPet()
+		local function onCharacterAdded(character)
+			local hrp = character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				visualPet.CFrame = hrp.CFrame * CFrame.new(0, 2, 0)
+			end
+		end
+		player.CharacterAdded:Connect(onCharacterAdded)
+		local character = player.Character
+		if character then
+			onCharacterAdded(character)
+		end
+	end
+	positionVisualPet()
 
 	-- Equipar la mascota automaticamente
 	player.leaderstats.EquippedPet.Value = "Puppy"
