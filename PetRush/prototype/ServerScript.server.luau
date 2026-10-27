@@ -11,6 +11,7 @@ local CANDY_VALUE = 1
 local RESPAWN_TIME = 5
 
 -- Módulo de multiplicadores por rareza de mascota
+-- Archivo: MultiplierConfig.luau (ModuleScript, sin .server)
 local MultiplierConfig = require(script.Parent:WaitForChild("MultiplierConfig"))
 
 -- Configuración de la tienda
@@ -903,16 +904,54 @@ local function onShopPurchase(player, purchaseType)
 	return success, message
 end
 
+-- Manejador de equipar mascota desde el cliente
+local function onEquipPet(player, petName)
+	local success, message = equipPet(player, petName)
+	local remote = getShopRemote()
+	if remote then
+		remote:FireClient(player, success, message)
+	end
+	return success, message
+end
+
+-- Manejador de desequipar mascota desde el cliente
+local function onUnequipPet(player)
+	local success, message = unequipPet(player)
+	local remote = getShopRemote()
+	if remote then
+		remote:FireClient(player, success, message)
+	end
+	return success, message
+end
+
+-- Conexiones de eventos para el panel de mascotas
+local function connectPetEventListeners()
+	local remote = getShopRemote()
+	if remote then
+		remote.OnServerEvent:Connect(function(player, action, petName)
+			if action == "EquipPet" then
+				onEquipPet(player, petName)
+			elseif action == "UnequipPet" then
+				onUnequipPet(player)
+			end
+		end)
+	end
+end
+
 Players.PlayerAdded:Connect(function(player)
 	-- Inicializar datos del jugador
 	setupPlayer(player)
 	giveStartingPet(player)
+	-- Conectar eventos del panel de mascotas
+	connectPetEventListeners()
 end)
 
 -- Aplicar setup a jugadores ya en el servidor (al cargar el lugar)
 for _, player in pairs(Players:GetPlayers()) do
 	setupPlayer(player)
 	giveStartingPet(player)
+	-- Conectar eventos del panel de mascotas
+	connectPetEventListeners()
 end
 
 -- Ejecutar init una sola vez al cargar el servidor

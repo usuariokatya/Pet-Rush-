@@ -131,7 +131,14 @@ local function updateDisplay()
 		-- Mostrar multiplicador de mascotas
 		if petMultiValue then
 			local petMulti = petMultiValue.Value
-			multiplierLabel.Text = "Multi: " .. multiplier .. "x" .. " Pet: " .. petMulti .. "x"
+			-- Calcular multiplicador total: producto de PetMultiplier × CookieMultiplier
+			local cookieMulti = 1
+			local cookieValue = leaderstats:FindFirstChild("CookieMultiplier")
+			if cookieValue then
+				cookieMulti = cookieValue.Value
+			end
+			local totalMulti = multiplier * cookieMulti * petMulti
+			multiplierLabel.Text = "Multi: " .. totalMulti .. "x"
 		end
 	end
 end
@@ -331,3 +338,63 @@ end
 
 -- Actualizar panel al cargar
 	updatePetPanel()
+
+-- Botones de equipar/desequipar
+	local equipButton = petPanel:FindFirstChild("EquipButton")
+	if not equipButton then
+		equipButton = Instance.new("TextButton")
+		equipButton.Name = "EquipButton"
+		equipButton.Size = UDim2.new(0, 80, 0, 20)
+		equipButton.Position = UDim2.new(0.1, 0, 0.75, 0)
+		equipButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+		equipButton.BackgroundTransparency = 0.3
+		equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		equipButton.TextSize = 11
+		equipButton.Font = Enum.Font.SourceSans
+		equipButton.Text = "Equipar"
+		equipButton.Parent = petPanel
+	end
+
+	local unequipButton = petPanel:FindFirstChild("UnequipButton")
+	if not unequipButton then
+		unequipButton = Instance.new("TextButton")
+		unequipButton.Name = "UnequipButton"
+		unequipButton.Size = UDim2.new(0, 80, 0, 20)
+		unequipButton.Position = UDim2.new(0.1, 0, 0.82, 0)
+		unequipButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+		unequipButton.BackgroundTransparency = 0.3
+		unequipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		unequipButton.TextSize = 11
+		unequipButton.Font = Enum.Font.SourceSans
+		unequipButton.Text = "Desequipar"
+		unequipButton.Parent = petPanel
+	end
+
+	-- Conectar clic Equipar
+	equipButton.MouseButton1Click:Connect(function()
+		local leaderstats = Player:FindFirstChild("leaderstats")
+		if not leaderstats then return end
+		local equipped = leaderstats:FindFirstChild("EquippedPet")
+		if not equipped then return end
+		local currentPet = equipped.Value
+		if currentPet == "" then
+			-- Ninguna equipada, pedir al servidor que equipé la primera
+			local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+			if remote then
+				remote:FireServer("EquipPet", "")
+			end
+		else
+			local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+			if remote then
+				remote:FireServer("EquipPet", currentPet)
+			end
+		end
+	end)
+
+	-- Conectar clic Desequipar
+	unequipButton.MouseButton1Click:Connect(function()
+		local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+		if remote then
+			remote:FireServer("UnequipPet", "")
+		end
+	end)
