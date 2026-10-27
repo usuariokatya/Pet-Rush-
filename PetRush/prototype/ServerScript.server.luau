@@ -10,6 +10,9 @@ local COIN_VALUE = 1
 local CANDY_VALUE = 1
 local RESPAWN_TIME = 5
 
+-- Módulo de multiplicadores por rareza de mascota
+local MultiplierConfig = require(script.Parent:WaitForChild("MultiplierConfig"))
+
 -- Configuración de la tienda
 local SHOP_PRICES = {
 	["ComboMultiplier"] = 100, -- Cuesta 100 Candies desbloquear multiplicador
@@ -202,6 +205,11 @@ local function setupPlayer(player)
 	petValue.Value = ""
 	petValue.Parent = leaderstats
 
+	local petMultiplierValue = Instance.new("NumberValue")
+	petMultiplierValue.Name = "PetMultiplier"
+	petMultiplierValue.Value = 1
+	petMultiplierValue.Parent = leaderstats
+
 	-- Tabla para rastrear mascotas y conexiones por jugador
 	playerPets[player] = {}
 
@@ -264,6 +272,11 @@ local function setupPlayer(player)
 	petValue.Name = "EquippedPet"
 	petValue.Value = ""
 	petValue.Parent = leaderstats
+
+	local petMultiplierValue = Instance.new("NumberValue")
+	petMultiplierValue.Name = "PetMultiplier"
+	petMultiplierValue.Value = 1
+	petMultiplierValue.Parent = leaderstats
 end
 
 -- Lógica de colección de monedas
@@ -292,7 +305,8 @@ local function onCoinTouched(coin, player)
 	local coins = player.leaderstats:FindFirstChild("Coins")
 	if not coins then return end
 
-	coins.Value = coins.Value + COIN_VALUE
+	local multi = calculateTotalMultiplier(player)
+	coins.Value = coins.Value + COIN_VALUE * multi
 
 	-- Efectos visuales y auditivos al recoger
 	-- Crear número flotante
@@ -370,7 +384,8 @@ local function onCandyTouched(candy, player)
 	local candies = player.leaderstats:FindFirstChild("Candies")
 	if not candies then return end
 
-	candies.Value = candies.Value + CANDY_VALUE
+	local multi = calculateTotalMultiplier(player)
+	candies.Value = candies.Value + CANDY_VALUE * multi
 
 	-- Efectos visuales y auditivos al recoger
 	-- Crear número flotante
@@ -510,6 +525,32 @@ local function processEggPurchase(player, eggType)
 	return true, "¡Abriste un " .. egg.Name .. " y obtuviste una mascota " .. rarity .. "!"
 end
 
+-- Función para calcular el multiplicador total de mascotas equipadas
+local function calculateTotalMultiplier(player)
+	local multiplier = 1
+	local petsFolder = player:FindFirstChild("Pets")
+	if not petsFolder then return multiplier end
+
+	for _, child in pairs(petsFolder:GetChildren()) do
+		if child:IsA("StringValue") then
+			-- Nombre formateado: "PetName (Rarity)"
+			local nameText = child.Value
+			local rarity = "Common" -- default
+			if nameText then
+				-- Extraer rareza del string "PetName (Rarity)"
+				local parts = nameText:split(" ")
+				if #parts >= 2 then
+					rarity = parts[#parts]:gsub("%(", ""):gsub("%)", "")
+				end
+			end
+			local rarityMulti = MultiplierConfig[rarity] or 1
+			multiplier = multiplier + rarityMulti
+		end
+	end
+
+	return multiplier
+end
+
 -- Función para determinar rareza aleatoria basada en pesos
 local function determineRarity(rarityTable)
 	local totalWeight = 0
@@ -594,6 +635,10 @@ local function givePetToPlayer(player, petName, rarity)
 
 -- Equipar la mascota automáticamente
 	player.leaderstats.EquippedPet.Value = petName
+
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
 
 	return "equipado"
 end
@@ -639,6 +684,32 @@ local function processEggPurchase(player, eggType)
 	return true, "¡Abriste un " .. egg.Name .. " y obtuviste una mascota " .. rarity .. "!"
 end
 
+-- Función para calcular el multiplicador total de mascotas equipadas
+local function calculateTotalMultiplier(player)
+	local multiplier = 1
+	local petsFolder = player:FindFirstChild("Pets")
+	if not petsFolder then return multiplier end
+
+	for _, child in pairs(petsFolder:GetChildren()) do
+		if child:IsA("StringValue") then
+			-- Nombre formateado: "PetName (Rarity)"
+			local nameText = child.Value
+			local rarity = "Common" -- default
+			if nameText then
+				-- Extraer rareza del string "PetName (Rarity)"
+				local parts = nameText:split(" ")
+				if #parts >= 2 then
+					rarity = parts[#parts]:gsub("%(", ""):gsub("%)", "")
+				end
+			end
+			local rarityMulti = MultiplierConfig[rarity] or 1
+			multiplier = multiplier + rarityMulti
+		end
+	end
+
+	return multiplier
+end
+
 -- Función para determinar rareza aleatoria basada en pesos
 local function determineRarity(rarityTable)
 	local totalWeight = 0
@@ -724,6 +795,10 @@ local function givePetToPlayer(player, petName, rarity)
 -- Equipar la mascota automáticamente
 	player.leaderstats.EquippedPet.Value = petName
 
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
+
 	return "equipado"
 end
 
@@ -745,6 +820,10 @@ local function giveStartingPet(player)
 
 	-- Equipar la mascota automaticamente
 	player.leaderstats.EquippedPet.Value = "Puppy"
+
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
 
 	-- Crear parte visual de la mascota que seguirá al jugador
 	local visualPet = player:FindFirstChild("VisualPet")
@@ -778,6 +857,10 @@ local function giveStartingPet(player)
 
 	-- Equipar la mascota automaticamente
 	player.leaderstats.EquippedPet.Value = "Puppy"
+
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
 end
 
 -- Función para equipar la mascota
@@ -789,6 +872,9 @@ local function equipPet(player, petName)
 	if equipped.Value == petName then return end
 
 	equipped.Value = petName
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
 	print("Mascota equipada: " .. petName)
 
 	-- Aquí podría ir lógica visual para mostrar la mascota
@@ -800,6 +886,9 @@ local function unequipPet(player)
 	if not equipped then return end
 
 	equipped.Value = ""
+	-- Actualizar multiplicador de mascotas
+	local petMultiplier = calculateTotalMultiplier(player)
+	player.leaderstats.PetMultiplier.Value = petMultiplier
 	print("Mascota desequipada")
 end
 

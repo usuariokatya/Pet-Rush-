@@ -110,6 +110,7 @@ local function updateDisplay()
 		local coinsValue = leaderstats:FindFirstChild("Coins")
 		local candiesValue = leaderstats:FindFirstChild("Candies")
 		local multiValue = leaderstats:FindFirstChild("CookieMultiplier")
+		local petMultiValue = leaderstats:FindFirstChild("PetMultiplier")
 
 		if coinsValue then
 			coinsLabel.Text = "Coins: " .. coinsValue.Value
@@ -127,6 +128,11 @@ local function updateDisplay()
 		else
 			multiplierLabel.Text = "Multi: 1x"
 		end
+		-- Mostrar multiplicador de mascotas
+		if petMultiValue then
+			local petMulti = petMultiValue.Value
+			multiplierLabel.Text = "Multi: " .. multiplier .. "x" .. " Pet: " .. petMulti .. "x"
+		end
 	end
 end
 
@@ -137,11 +143,15 @@ if leaderstats then
 	-- También actualizar Candies y Multiplier inicialmente
 	local candiesValue = leaderstats:FindFirstChild("Candies")
 	local multiValue = leaderstats:FindFirstChild("CookieMultiplier")
+	local petMultiValue = leaderstats:FindFirstChild("PetMultiplier")
 	if candiesValue then
 		candiesValue.Changed:Connect(updateDisplay)
 	end
 	if multiValue then
 		multiValue.Changed:Connect(updateDisplay)
+	end
+	if petMultiValue then
+		petMultiValue.Changed:Connect(updateDisplay)
 	end
 end
 
@@ -235,3 +245,89 @@ if remote then
 		end
 	end)
 end
+-- Panel de mascotas equipadas e inventario
+	local petPanel = frame:FindFirstChild("PetPanel")
+	if not petPanel then
+		petPanel = Instance.new("Frame")
+		petPanel.Name = "PetPanel"
+		petPanel.Size = UDim2.new(1, 0, 0.3, 0)
+		petPanel.Position = UDim2.new(0, 0, 0.85, 0)
+		petPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		petPanel.BackgroundTransparency = 0.5
+		petPanel.Parent = frame
+	end
+
+	local equippedPetLabel = petPanel:FindFirstChild("EquippedPetLabel")
+	if not equippedPetLabel then
+		equippedPetLabel = Instance.new("TextLabel")
+		equippedPetLabel.Name = "EquippedPetLabel"
+		equippedPetLabel.Size = UDim2.new(1, 0, 0.3, 0)
+		equippedPetLabel.Position = UDim2.new(0, 0, 0, 0)
+		equippedPetLabel.BackgroundTransparency = 1
+		equippedPetLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		equippedPetLabel.TextSize = 12
+		equippedPetLabel.Font = Enum.Font.SourceSans
+		equippedPetLabel.Text = "Mascota equipada: Ninguna"
+		equippedPetLabel.Parent = petPanel
+	end
+
+	local inventoryLabel = petPanel:FindFirstChild("InventoryLabel")
+	if not inventoryLabel then
+		inventoryLabel = Instance.new("TextLabel")
+		inventoryLabel.Name = "InventoryLabel"
+		inventoryLabel.Size = UDim2.new(1, 0, 0.3, 0)
+		inventoryLabel.Position = UDim2.new(0, 0, 0.35, 0)
+		inventoryLabel.BackgroundTransparency = 1
+		inventoryLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+		inventoryLabel.TextSize = 11
+		inventoryLabel.Font = Enum.Font.SourceSans
+		inventoryLabel.Text = "Inventario: (vacío)"
+		inventoryLabel.Parent = petPanel
+	end
+
+	local function updatePetPanel()
+		local leaderstats = Player:FindFirstChild("leaderstats")
+		if not leaderstats then return end
+
+		-- Actualizar mascota equipada
+		local equippedValue = leaderstats:FindFirstChild("EquippedPet")
+		if equippedValue and equippedValue.Value ~= "" then
+			equippedPetLabel.Text = "Mascota equipada: " .. equippedValue.Value
+		else
+			equippedPetLabel.Text = "Mascota equipada: Ninguna"
+		end
+
+		-- Actualizar inventario
+		local petsFolder = Player:FindFirstChild("Pets")
+		local inventoryFolder = Player:FindFirstChild("Inventory")
+		local inventoryText = "Inventario: "
+		if inventoryFolder then
+			local petCount = 0
+			for _, child in pairs(inventoryFolder:GetChildren()) do
+				if child:IsA("StringValue") then
+					petCount = petCount + 1
+				end
+			end
+			inventoryText = inventoryText .. petCount .. " mascota(s) en inv."
+		else
+			inventoryText = inventoryText .. "(vacío)"
+		end
+		inventoryLabel.Text = inventoryText
+	end
+
+	-- Conectar actualizaciones
+	local leaderstats = Player:FindFirstChild("leaderstats")
+	if leaderstats then
+		leaderstats.Changed:Connect(updatePetPanel)
+		local pets = Player:FindFirstChild("Pets")
+		if pets then
+			pets.Changed:Connect(updatePetPanel)
+		end
+		local inventory = Player:FindFirstChild("Inventory")
+		if inventory then
+			inventory.Changed:Connect(updatePetPanel)
+		end
+	end
+
+-- Actualizar panel al cargar
+	updatePetPanel()
