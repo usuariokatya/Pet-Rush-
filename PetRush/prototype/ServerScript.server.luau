@@ -260,6 +260,43 @@ local function onCoinTouched(coin, player)
 
 	coins.Value = coins.Value + COIN_VALUE
 
+	-- Efectos visuales y auditivos al recoger
+	-- Crear número flotante
+	local floatValue = Instance.new("IntValue")
+	floatValue.Name = "CoinValue"
+	floatValue.Value = COIN_VALUE
+	floatValue.Parent = coin
+
+	-- Posicionar número flotante sobre la moneda
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "CoinFloat"
+	billboard.Size = UDim2.new(0, 50, 0, 30)
+	billboard.StudsOffset = Vector3.new(0, 2, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = coin
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+	textLabel.TextScaled = true
+	textLabel.Text = "+" .. COIN_VALUE
+	textLabel.Parent = billboard
+
+-- Reproducir sonido de colección (servidor)
+	local sound = Instance.new("Sound")
+	sound.Name = "CollectSound"
+	sound.SoundId = "rbxassetid://45906511" -- Sound ID: moneda clásica
+	sound.Parent = coin
+	sound:Play()
+
+	-- Eliminar efectos después de unos segundos
+	task.delay(1, function()
+		if billboard then billboard:Destroy() end
+		if sound then sound:Destroy() end
+		if floatValue then floatValue:Destroy() end
+	end)
+
 	-- Ocultar moneda y reprogramar
 	coin.Transparency = 1
 	coin.CanCollide = false
@@ -300,6 +337,43 @@ local function onCandyTouched(candy, player)
 	if not candies then return end
 
 	candies.Value = candies.Value + CANDY_VALUE
+
+	-- Efectos visuales y auditivos al recoger
+	-- Crear número flotante
+	local floatValue = Instance.new("IntValue")
+	floatValue.Name = "CandyValue"
+	floatValue.Value = CANDY_VALUE
+	floatValue.Parent = candy
+
+	-- Posicionar número flotante sobre la caramelo
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "CandyFloat"
+	billboard.Size = UDim2.new(0, 50, 0, 30)
+	billboard.StudsOffset = Vector3.new(0, 2, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = candy
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
+	textLabel.TextScaled = true
+	textLabel.Text = "+" .. CANDY_VALUE
+	textLabel.Parent = billboard
+
+-- Reproducir sonido de colección (servidor)
+	local sound = Instance.new("Sound")
+	sound.Name = "CollectSound"
+	sound.SoundId = "rbxassetid://311792765" -- Sound ID: sonido dulce
+	sound.Parent = candy
+	sound:Play()
+
+	-- Eliminar efectos después de unos segundos
+	task.delay(1, function()
+		if billboard then billboard:Destroy() end
+		if sound then sound:Destroy() end
+		if floatValue then floatValue:Destroy() end
+	end)
 
 	-- Ocultar caramelo y reprogramar
 	candy.Transparency = 1
