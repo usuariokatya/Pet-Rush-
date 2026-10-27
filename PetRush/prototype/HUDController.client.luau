@@ -138,7 +138,9 @@ local function updateDisplay()
 				cookieMulti = cookieValue.Value
 			end
 			local totalMulti = multiplier * cookieMulti * petMulti
-			multiplierLabel.Text = "Multi: " .. totalMulti .. "x"
+			-- Redondear para evitar decimales extraños en display
+			local displayMulti = math.round(totalMulti * 10) / 10
+			multiplierLabel.Text = "Multi: " .. displayMulti .. "x"
 		end
 	end
 end
