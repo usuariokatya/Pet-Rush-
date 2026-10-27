@@ -113,13 +113,14 @@ function Collectibles.CreateCollectible(position: Vector3, type: string, zoneNam
 			-- Eliminar el objeto físico
 				part:Destroy()
 
-			-- Programar reaparición validando el contenedor original
+-- Programar reaparición con fallback a Workspace
 				task.delay(respawnTime, function()
-					if container and container.Parent then
-						Collectibles.CreateCollectible(position, type, zoneName)
-					end
-				end)
-			end
+				-- Usar contenedor original si aún existe, sino Workspace
+				local safeContainer = container and container.Parent and container or Workspace
+				if safeContainer then
+					Collectibles.CreateCollectible(position, type, zoneName)
+				end
+			end)
 		end
 	end)
 
