@@ -1,5 +1,5 @@
 -- HUDController.client.luau
--- Contador y display de monedas y caramelos en la pantalla
+-- Contador y display de monedas, caramelos y sistema de huevos
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -19,7 +19,7 @@ local frame = screenGui:FindFirstChild("Frame")
 if not frame then
 	frame = Instance.new("Frame")
 	frame.Name = "Frame"
-	frame.Size = UDim2.new(0, 200, 0, 100)
+	frame.Size = UDim2.new(0, 280, 0, 140)
 	frame.Position = UDim2.new(0, 10, 0, 10)
 	frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	frame.BackgroundTransparency = 0.5
@@ -31,7 +31,7 @@ local coinsLabel = frame:FindFirstChild("CoinsLabel")
 if not coinsLabel then
 	coinsLabel = Instance.new("TextLabel")
 	coinsLabel.Name = "CoinsLabel"
-	coinsLabel.Size = UDim2.new(1, 0, 0.3, 0)
+	coinsLabel.Size = UDim2.new(1, 0, 0.2, 0)
 	coinsLabel.Position = UDim2.new(0, 0, 0, 0)
 	coinsLabel.BackgroundTransparency = 1
 	coinsLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- Gold color for coins
@@ -45,8 +45,8 @@ local candiesLabel = frame:FindFirstChild("CandiesLabel")
 if not candiesLabel then
 	candiesLabel = Instance.new("TextLabel")
 	candiesLabel.Name = "CandiesLabel"
-	candiesLabel.Size = UDim2.new(1, 0, 0.3, 0)
-	candiesLabel.Position = UDim2.new(0, 0, 0.35, 0) -- Below coins label
+	candiesLabel.Size = UDim2.new(1, 0, 0.2, 0)
+	candiesLabel.Position = UDim2.new(0, 0, 0.25, 0) -- Below coins label
 	candiesLabel.BackgroundTransparency = 1
 	candiesLabel.TextColor3 = Color3.fromRGB(255, 105, 180) -- Pink/red color for candies
 	candiesLabel.TextSize = 18
@@ -60,8 +60,38 @@ local multiplierLabel = frame:FindFirstChild("MultiplierLabel")
 if not multiplierLabel then
 	multiplierLabel = Instance.new("TextLabel")
 	multiplierLabel.Name = "MultiplierLabel"
-	multiplierLabel.Size = UDim2.new(1, 0, 0.3, 0)
-	multiplierLabel.Position = UDim2.new(0, 0, 0.7, 0) -- At the bottom
+	multiplierLabel.Size = UDim2.new(1, 0, 0.2, 0)
+	multiplierLabel.Position = UDim2.new(0, 0, 0.5, 0) -- At the top middle
+	multiplierLabel.BackgroundTransparency = 1
+	multiplierLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	multiplierLabel.TextSize = 14
+	multiplierLabel.Font = Enum.Font.SourceSans
+	multiplierLabel.Text = "Multi: 1x"
+	multiplierLabel.Parent = frame
+end
+
+-- Área para mensajes y huevos
+local eggInfoLabel = frame:FindFirstChild("EggInfoLabel")
+if not eggInfoLabel then
+	eggInfoLabel = Instance.new("TextLabel")
+	eggInfoLabel.Name = "EggInfoLabel"
+	eggInfoLabel.Size = UDim2.new(1, 0, 0.3, 0)
+	eggInfoLabel.Position = UDim2.new(0, 0, 0.75, 0) -- Below everything
+	eggInfoLabel.BackgroundTransparency = 1
+	eggInfoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	eggInfoLabel.TextSize = 12
+	eggInfoLabel.Font = Enum.Font.SourceSans
+	eggInfoLabel.Text = "Haz clic en los huevos para intentar obtener mascotas"
+	eggInfoLabel.Parent = frame
+end
+
+-- También podría mostrar el multiplicador
+local multiplierLabel = frame:FindFirstChild("MultiplierLabel")
+if not multiplierLabel then
+	multiplierLabel = Instance.new("TextLabel")
+	multiplierLabel.Name = "MultiplierLabel"
+	multiplierLabel.Size = UDim2.new(1, 0, 0.1, 0)
+	multiplierLabel.Position = UDim2.new(0, 0, 0.5, 0) -- At the top middle
 	multiplierLabel.BackgroundTransparency = 1
 	multiplierLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	multiplierLabel.TextSize = 14
@@ -84,7 +114,6 @@ local function updateDisplay()
 		if coinsValue then
 			coinsLabel.Text = "Coins: " .. coinsValue.Value
 		else
-			-- Si aún no hay Coins, asegurar texto base
 			coinsLabel.Text = "Coins: 0"
 		end
 		if candiesValue then
@@ -119,27 +148,73 @@ end
 -- También actualizar inmediatamente al cargar
 updateDisplay()
 
--- Crear botón de tienda (después de las etiquetas)
-local shopButton = frame:FindFirstChild("ShopButton")
-if not shopButton then
-	shopButton = Instance.new("TextButton")
-	shopButton.Name = "ShopButton"
-	shopButton.Size = UDim2.new(0, 120, 0, 30)
-	shopButton.Position = UDim2.new(0.5, -60, 0.85, 0) -- Centrado en la parte inferior
-	shopButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	shopButton.BackgroundTransparency = 0.3
-	shopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	shopButton.TextSize = 14
-	shopButton.Font = Enum.Font.SourceSans
-	shopButton.Text = "Tienda: ComboMultiplier (100C)"
-	shopButton.Parent = frame
+-- Crear botones de huevos (después de las etiquetas)
+local commonEggButton = frame:FindFirstChild("CommonEggButton")
+if not commonEggButton then
+	commonEggButton = Instance.new("TextButton")
+	commonEggButton.Name = "CommonEggButton"
+	commonEggButton.Size = UDim2.new(0, 100, 0, 25)
+	commonEggButton.Position = UDim2.new(0, 5, 0.82, 0)
+	commonEggButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	commonEggButton.BackgroundTransparency = 0.3
+	commonEggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	commonEggButton.TextSize = 11
+	commonEggButton.Font = Enum.Font.SourceSans
+	commonEggButton.Text = "CaramelEgg (50C) - Common:60%/Rare:40%"
+	commonEggButton.Parent = frame
 end
 
--- Conectar clic a la compra en la tienda
-shopButton.MouseButton1Click:Connect(function()
+local rareEggButton = frame:FindFirstChild("RareEggButton")
+if not rareEggButton then
+	rareEggButton = Instance.new("TextButton")
+	rareEggButton.Name = "RareEggButton"
+	rareEggButton.Size = UDim2.new(0, 100, 0, 25)
+	rareEggButton.Position = UDim2.new(0, 110, 0.82, 0)
+	rareEggButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	rareEggButton.BackgroundTransparency = 0.3
+	rareEggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	rareEggButton.TextSize = 11
+	rareEggButton.Font = Enum.Font.SourceSans
+	rareEggButton.Text = "PetalEgg (200C) - Rare:50%/Epic:50%"
+	rareEggButton.Parent = frame
+end
+
+local epicEggButton = frame:FindFirstChild("EpicEggButton")
+if not epicEggButton then
+	epicEggButton = Instance.new("TextButton")
+	epicEggButton.Name = "EpicEggButton"
+	epicEggButton.Size = UDim2.new(0, 100, 0, 25)
+	epicEggButton.Position = UDim2.new(0, 215, 0.82, 0)
+	epicEggButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	epicEggButton.BackgroundTransparency = 0.3
+	epicEggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	epicEggButton.TextSize = 11
+	epicEggButton.Font = Enum.Font.SourceSans
+	epicEggButton.Text = "StarEgg (500C) - Epic:60%/Legendary:40%"
+	epicEggButton.Parent = frame
+end
+
+-- Conectar clic a la compra de huevos comunes
+commonEggButton.MouseButton1Click:Connect(function()
 	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
 	if remote then
-		remote:FireServer("ComboMultiplier")
+		remote:FireServer("BuyCommonEgg")
+	end
+end)
+
+-- Conectar clic a la compra de huevos raros
+rareEggButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("BuyRareEgg")
+	end
+end
+
+-- Conectar clic a la compra de huevos épicos
+epicEggButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("BuyEpicEgg")
 	end
 end)
 
@@ -149,11 +224,13 @@ if remote then
 	remote.OnClientEvent:Connect(function(success, message)
 		if success then
 			-- Mostrar mensaje de éxito
+			eggInfoLabel.Text = message
 			print("Compra exitosa: " .. message)
 			-- Actualizar el multiplicador en el HUD
 			updateDisplay()
 		else
 			-- Mostrar mensaje de error
+			eggInfoLabel.Text = message
 			print("Error en compra: " .. message)
 		end
 	end)

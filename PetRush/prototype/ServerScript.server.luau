@@ -598,6 +598,135 @@ local function givePetToPlayer(player, petName, rarity)
 	return "equipado"
 end
 
+-- Función para procesar compra de huevo
+local function processEggPurchase(player, eggType)
+	local egg = EGG_CONFIG[eggType]
+	if not egg then return false, "Tipo de huevo no válido" end
+
+	-- Verificar costo en monedas
+	local coins = player.leaderstats:FindFirstChild("Coins")
+	if not coins then return false, "Error: no hay leaderstats" end
+
+	if coins.Value < egg.CostCoins then
+		return false, "No tienes suficientes Coins para comprar este huevo"
+	end
+
+	-- Verificar costo en caramelos (si tiene costo)
+	if egg.CostCandies then
+		local candies = player.leaderstats:FindFirstChild("Candies")
+		if not candies then return false, "Error: no hay Candies" end
+		if candies.Value < egg.CostCandies then
+			return false, "No tienes suficientes Candies para comprar este huevo"
+		end
+	end
+
+	-- Descontar monedas
+	coins.Value = coins.Value - egg.CostCoins
+
+	-- Si tiene costo en caramelos, descontarlos también
+	if egg.CostCandies then
+		local candies = player.leaderstats:FindFirstChild("Candies")
+		candies.Value = candies.Value - egg.CostCandies
+	end
+
+	-- Abrir huevo y determinar rareza
+	local rarity = determineRarity(egg.Rarities)
+	local petName = generatePetName(rarity)
+
+	-- Dar mascota al jugador
+	local result = givePetToPlayer(player, petName, rarity)
+
+	return true, "¡Abriste un " .. egg.Name .. " y obtuviste una mascota " .. rarity .. "!"
+end
+
+-- Función para determinar rareza aleatoria basada en pesos
+local function determineRarity(rarityTable)
+	local totalWeight = 0
+	for rarity, weight in pairs(rarityTable) do
+		totalWeight = totalWeight + weight
+	end
+
+	local random = math.random(1, totalWeight)
+	local currentWeight = 0
+
+	for rarity, weight in pairs(rarityTable) do
+		currentWeight = currentWeight + weight
+		if random <= currentWeight then
+			return rarity
+		end
+	end
+
+	-- Fallback a Common
+	return "Common"
+end
+
+-- Función para generar nombre de mascota basado en rareza
+local function generatePetName(rarity)
+	local baseNames = {
+		Common = "Dulce",
+		Rare = "Floral",
+		Epic = "Estelar",
+		Legendary = "Mítico"
+	}
+
+	local suffixes = {
+		Common = {"Picotón", "Blando", "Pequeño"},
+		Rare = {"Resplandeciente", "Veloz", "Coloreado"},
+		Epic = {"Arcángel", "Mágico", "Divino"},
+		Legendary = {"Sagrado", "Eterno", "Infinito"}
+	}
+
+	local base = baseNames[rarity]
+	local suffix = suffixes[rarity][math.random(1, #suffixes[rarity])]
+
+	return base .. " " .. suffix
+end
+
+-- Función para dar mascota al jugador
+local function givePetToPlayer(player, petName, rarity)
+	-- Crear carpeta de mascotas si no existe
+	local petsFolder = player:FindFirstChild("Pets")
+	if not petsFolder then
+		petsFolder = Instance.new("Folder")
+		petsFolder.Name = "Pets"
+		petsFolder.Parent = player
+	end
+
+	-- Verificar si hay slot disponible (máximo 3 mascotas equipadas)
+	local equippedCount = 0
+	local maxSlots = 3
+	for _, child in pairs(player.Pets:GetChildren()) do
+		if child:IsA("StringValue") then
+			equippedCount = equippedCount + 1
+		end
+	end
+
+	if equippedCount >= maxSlots then
+		-- Guardar en inventario (aún no implementado visualmente, solo lógica)
+		local inventoryFolder = player:FindFirstChild("Inventory")
+		if not inventoryFolder then
+			inventoryFolder = Instance.new("Folder")
+			inventoryFolder.Name = "Inventory"
+			inventoryFolder.Parent = player
+		end
+		local petValue = Instance.new("StringValue")
+		petValue.Name = petName .. "_" .. rarity
+		petValue.Parent = inventoryFolder
+		return "guardado_en_inventario"
+	end
+
+-- Crear mascota en la carpeta del jugador
+	local petValue = Instance.new("StringValue")
+	petValue.Name = "PetName"
+	petValue.Value = petName .. " (" .. rarity .. ")"
+	petValue.Parent = petsFolder
+
+-- Equipar la mascota automáticamente
+	player.leaderstats.EquippedPet.Value = petName
+
+	return "equipado"
+end
+
 -- Función para dar mascota inicial al jugador
 local function giveStartingPet(player)
 	-- Crear carpeta de mascotas si no existe
