@@ -23,8 +23,8 @@ local EGG_CONFIG = {
 		CostCoins = 50,
 		CostCandies = 0,
 		Rarities = {
-			Common = 50,   -- 50% de probabilidad
-			Rare = 30,     -- 30% de probabilidad
+			Common = 60,   -- 60% de probabilidad (suman 100% con Rare abajo)
+			Rare = 40,     -- 40% de probabilidad
 		},
 	},
 	["RareEgg"] = {
@@ -33,8 +33,8 @@ local EGG_CONFIG = {
 		CostCoins = 200,
 		CostCandies = 0,
 		Rarities = {
-			Rare = 40,     -- 40% de probabilidad
-			Epic = 30,     -- 30% de probabilidad
+			Rare = 50,     -- 50% de probabilidad (suman 100% con Epic abajo)
+			Epic = 50,     -- 50% de probabilidad
 		},
 	},
 	["EpicEgg"] = {
@@ -43,8 +43,8 @@ local EGG_CONFIG = {
 		CostCoins = 500,
 		CostCandies = 0,
 		Rarities = {
-			Epic = 50,     -- 50% de probabilidad
-			Legendary = 20, -- 20% de probabilidad
+			Epic = 60,     -- 60% de probabilidad (suman 100% con Legendary abajo)
+			Legendary = 40, -- 40% de probabilidad
 		},
 	},
 }
