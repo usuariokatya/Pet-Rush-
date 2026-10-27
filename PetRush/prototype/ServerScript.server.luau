@@ -116,10 +116,10 @@ local function onCoinTouched(coin, player)
 	coin.CanCollide = false
 
 	task.delay(RESPAWN_TIME, function()
-		if coin.Parent then
+		if coin and coin.Parent then
 			coin.Transparency = 0
 			coin.CanCollide = true
-			tag:Destroy()
+			if tag then tag:Destroy() end
 		end
 	end)
 end
