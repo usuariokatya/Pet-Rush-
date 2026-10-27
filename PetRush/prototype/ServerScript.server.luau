@@ -7,6 +7,7 @@ local Workspace = game:GetService("Workspace")
 
 -- Configuración
 local COIN_VALUE = 1
+local CANDY_VALUE = 1
 local RESPAWN_TIME = 5
 
 -- Flag para asegurar que init solo se ejecuta una vez
@@ -68,7 +69,40 @@ local function createCoins()
 	return coinPositions
 end
 
--- Configurar jugador (líderstats y monedas) - idempotente
+-- Configurar caramelos (integrado con sistema de recolectables)
+local function setupCandies()
+	local candyTemplate = Instance.new("Part")
+	candyTemplate.Name = "Candy"
+	candyTemplate.Size = Vector3.new(1, 1, 1)
+	candyTemplate.Shape = Enum.PartType.Ball
+	candyTemplate.Anchored = true
+	candyTemplate.Material = Enum.Material.Neon
+	candyTemplate.Color = BrickColor.new("Red").Color
+	candyTemplate.CanCollide = true
+
+	-- Dar valor a la caramelo mediante un valor de instancia
+	local value = Instance.new("IntValue")
+	value.Name = "Value"
+	value.Value = CANDY_VALUE
+	value.Parent = candyTemplate
+
+	-- Posicionar caramelos en cuadrícula
+	local candyPositions = {}
+	for i = 1, 10 do
+		local x = (i - 1) % 5 * 3 - 5
+		local y = math.floor((i - 1) / 5) * 3 + 3
+		local z = 0
+		local pos = Vector3.new(x, y, z)
+
+		local candy = candyTemplate:Clone()
+		candy.CFrame = CFrame.new(pos)
+		candy.Parent = Workspace
+		table.insert(candyPositions, candy)
+	end
+	return candyPositions
+end
+
+-- Configurar jugador (líderstats y monedas/ caramelos) - idempotente
 local function setupPlayer(player)
 	-- Evitar configuración duplicada
 	if player:FindFirstChild("leaderstats") then return end
@@ -81,9 +115,14 @@ local function setupPlayer(player)
 	coinsValue.Name = "Coins"
 	coinsValue.Value = 0
 	coinsValue.Parent = leaderstats
+
+	local candiesValue = Instance.new("IntValue")
+	candiesValue.Name = "Candies"
+	candiesValue.Value = 0
+	candiesValue.Parent = leaderstats
 end
 
--- Lógica de colección
+-- Lógica de colección de monedas
 local function onCoinTouched(coin, player)
 	if not coin.Parent then return end
 
@@ -119,7 +158,48 @@ local function onCoinTouched(coin, player)
 		if coin and coin.Parent then
 			coin.Transparency = 0
 			coin.CanCollide = true
-			if tag then tag:Destroy() end
+			tag:Destroy()
+		end
+	end)
+end
+
+-- Lógica de colección de caramelos
+local function onCandyTouched(candy, player)
+	if not candy.Parent then return end
+
+	local character = player.Character
+	if not character then return end
+	local humanoid = character:FindFirstChild("Humanoid")
+	if not humanoid or humanoid.Health <= 0 then return end
+
+	local proximity = (candy.Position - character.PrimaryPart.Position).Magnitude
+	if proximity > 5 then return end
+
+	-- Evitar colección múltiple
+	local alreadyCollected = candy:FindFirstChild("CollectedTag")
+	if alreadyCollected then return end
+
+	local tag = Instance.new("BoolValue")
+	tag.Name = "CollectedTag"
+	tag.Parent = candy
+
+	-- Sumar caramelo en servidor
+	setupPlayer(player)
+
+	local candies = player.leaderstats:FindFirstChild("Candies")
+	if not candies then return end
+
+	candies.Value = candies.Value + CANDY_VALUE
+
+	-- Ocultar caramelo y reprogramar
+	candy.Transparency = 1
+	candy.CanCollide = false
+
+	task.delay(CANDY_RESPAWN_TIME, function()
+		if candy and candy.Parent then
+			candy.Transparency = 0
+			candy.CanCollide = true
+			tag:Destroy()
 		end
 	end)
 end
@@ -136,6 +216,18 @@ local function setupCoinCollection(coinPositions)
 	end
 end
 
+-- Conectar eventos de caramelos
+local function setupCandyCollection(candyPositions)
+	for _, candy in pairs(candyPositions) do
+		candy.Touched:Connect(function(hit)
+			local player = Players:GetPlayerFromCharacter(hit.Parent)
+			if player then
+				onCandyTouched(candy, player)
+			end
+		end)
+	end
+end
+
 -- Inicialización (solo una vez al iniciar el servidor)
 local function init()
 	if initialized then return end
@@ -145,7 +237,10 @@ local function init()
 	local coins = createCoins()
 	setupCoinCollection(coins)
 
-	print("Prototipo servidor inicializado - 20 monedas distribuidas")
+	local candies = setupCandies()
+	setupCandyCollection(candies)
+
+	print("Prototipo servidor inicializado - 20 monedas y 10 caramelos distribuidos")
 end
 
 -- Conectar cuando un jugador se une
