@@ -14,6 +14,29 @@ local RESPAWN_TIME = 5
 -- Archivo: MultiplierConfig.luau (ModuleScript, sin .server)
 local MultiplierConfig = require(script.Parent:WaitForChild("MultiplierConfig"))
 
+-- Configuración de iluminación
+local Lighting = game:GetService("Lighting")
+local sun = Instance.new("Sun")
+sun.Name = "HalloweenSun"
+sun.Temperature = 2000 -- Luz cálida/tenue tipo luna de Halloween
+sun.Archivable = false
+sun.Parent = Lighting
+
+local bloom = Instance.new("Bloom")
+bloom.Name = "HalloweenBloom"
+bloom.Intensity = 0.5
+bloom.Size = 20
+bloom.Threshold = 1
+bloom.Parent = Lighting
+
+local fog = Instance.new("Fog")
+fog.Name = "HalloweenFog"
+fog.Start = 50
+fog.End = 200
+fog.Color = Color3.fromRGB(50, 0, 0) -- Sangre/oscuridad
+fog.Density = 0.3
+fog.Parent = Lighting
+
 -- Configuración de la tienda
 local SHOP_PRICES = {
 	["ComboMultiplier"] = 100, -- Cuesta 100 Candies desbloquear multiplicador
@@ -166,24 +189,24 @@ local function setupMap()
 end
 
 -- Crear monedas
-local function createCoins()
-	local coinTemplate = Instance.new("Part")
-	coinTemplate.Name = "Coin"
-	coinTemplate.Size = Vector3.new(1, 1, 1)
-	coinTemplate.Shape = Enum.PartType.Ball
-	coinTemplate.Anchored = true
-	coinTemplate.Material = Enum.Material.Neon
-	coinTemplate.Color = BrickColor.new("Gold").Color
-	coinTemplate.CanCollide = true
+local function createPumpkins()
+	local pumpkinTemplate = Instance.new("Part")
+	pumpkinTemplate.Name = "Pumpkin"
+	pumpkinTemplate.Size = Vector3.new(1.5, 2, 1.5)
+	pumpkinTemplate.Shape = Enum.PartType.Ball
+	pumpkinTemplate.Anchored = true
+	pumpkinTemplate.Material = Enum.Material.Neon
+	pumpkinTemplate.Color = BrickColor.new("Orange").Color
+	pumpkinTemplate.CanCollide = true
 
-	-- Dar valor a la moneda mediante un valor de instancia
+	-- Dar valor a la calabaza mediante un valor de instancia
 	local value = Instance.new("IntValue")
 	value.Name = "Value"
-	value.Value = COIN_VALUE
-	value.Parent = coinTemplate
+	value.Value = COIN_VALUE -- Mismo valor que monedas para compatibilidad
+	value.Parent = pumpkinTemplate
 
-	-- Posicionar monedas en círculo
-	local coinPositions = {}
+	-- Posicionar calabazas en círculo
+	local pumpkinPositions = {}
 	for i = 1, 20 do
 		local angle = (i / 20) * math.pi * 2
 		local radius = 10
@@ -191,12 +214,12 @@ local function createCoins()
 		local z = math.sin(angle) * radius
 		local pos = Vector3.new(x, 3 + math.random(-0.5, 0.5), z)
 
-		local coin = coinTemplate:Clone()
-		coin.CFrame = CFrame.new(pos)
-		coin.Parent = Workspace
-		table.insert(coinPositions, coin)
+		local pumpkin = pumpkinTemplate:Clone()
+		pumpkin.CFrame = CFrame.new(pos)
+		pumpkin.Parent = Workspace
+		table.insert(pumpkinPositions, pumpkin)
 	end
-	return coinPositions
+	return pumpkinPositions
 end
 
 -- Crear caramelos
@@ -1114,12 +1137,12 @@ function init()
 	-- Configurar mapa
 	setupMap()
 
-	-- Crear monedas y caramelos
-	local coinPositions = createCoins()
+	-- Crear calabazas y caramelos
+	local pumpkinPositions = createPumpkins()
 	local candyPositions = createCandies()
 
 	-- Conectar colecciones
-	setupCoinCollection(coinPositions)
+	setupCoinCollection(pumpkinPositions)
 	setupCandyCollection(candyPositions)
 
 	-- Crear mascota en el mundo
