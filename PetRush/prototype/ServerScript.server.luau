@@ -20,6 +20,77 @@ local SHOP_PRICES = {
 	["ExtraPetSlot"] = 300, -- Cuesta 300 Coins desbloquear slot extra
 }
 
+-- DataStore para persistencia de jugador
+local function savePlayerData(player)
+	local success, data = pcall(function()
+		return statsDataStore:GetAsync(player.UserId .. "_petrush_stats")
+	end)
+	if success and data then
+		-- Guardar monedas, caramelos, multiplicador y slots
+		local leaderstats = player:FindFirstChild("leaderstats")
+		if leaderstats then
+			local coins = leaderstats:FindFirstChild("Coins")
+			local candies = leaderstats:FindFirstChild("Candies")
+			local petMulti = leaderstats:FindFirstChild("PetMultiplier")
+			local extraSlots = player:FindFirstChild("ExtraPetSlots")
+			local equippedPet = leaderstats:FindFirstChild("EquippedPet")
+			
+			local saveData = {}
+			if coins then saveData.coins = coins.Value end
+			if candies then saveData.candies = candies.Value end
+			if petMulti then saveData.petMultiplier = petMulti.Value end
+			if extraSlots then saveData.extraSlots = extraSlots.Value end
+			if equippedPet then saveData.equippedPet = equippedPet.Value end
+			
+			return saveData
+		end
+	end
+	return nil
+end
+
+local function loadPlayerData(player)
+	local success, data = pcall(function()
+		return statsDataStore:GetAsync(player.UserId .. "_petrush_stats")
+	end)
+	if success and data then
+		local leaderstats = player:FindFirstChild("leaderstats")
+		if leaderstats then
+			local coins = leaderstats:FindFirstChild("Coins")
+			local candies = leaderstats:FindFirstChild("Candies")
+			local petMulti = leaderstats:FindFirstChild("PetMultiplier")
+			local extraSlots = player:FindFirstChild("ExtraPetSlots")
+			local equippedPet = leaderstats:FindFirstChild("EquippedPet")
+			
+			if coins and data.coins then coins.Value = data.coins end
+			if candies and data.candies then candies.Value = data.candies end
+			if petMulti and data.petMultiplier then petMulti.Value = data.petMultiplier end
+			if extraSlots and data.extraSlots then extraSlots.Value = data.extraSlots end
+			if equippedPet and data.equippedPet then equippedPet.Value = data.equippedPet end
+		end
+	end
+end
+
+Players.PlayerAdded:Connect(function(player)
+	-- Cargar datos guardados
+	loadPlayerData(player)
+	
+	-- Inicializar datos del jugador
+	setupPlayer(player)
+	giveStartingPet(player)
+	
+	-- Guardar datos cuando el jugador se va
+	player.CharacterRemoving:Connect(function()
+		savePlayerData(player)
+	end)
+end)
+
+-- Aplicar setup a jugadores ya en el servidor (al cargar el lugar)
+for _, player in pairs(Players:GetPlayers()) do
+	setupPlayer(player)
+	giveStartingPet(player)
+	loadPlayerData(player)
+end
+
 -- Configuración de Huevos con rarezas definidas
 local EGG_CONFIG = {
 	["CommonEgg"] = {
@@ -212,6 +283,22 @@ local function setupPlayer(player)
 	petMultiplierValue.Value = 1
 	petMultiplierValue.Parent = leaderstats
 
+	-- Nivel y XP
+	local levelValue = Instance.new("IntValue")
+	levelValue.Name = "Level"
+	levelValue.Value = 1
+	levelValue.Parent = leaderstats
+
+	local xpValue = Instance.new("IntValue")
+	xpValue.Name = "XP"
+	xpValue.Value = 0
+	xpValue.Parent = leaderstats
+
+	local xpToNextValue = Instance.new("IntValue")
+	xpToNextValue.Name = "XPToNext"
+	xpToNextValue.Value = 100
+	xpToNextValue.Parent = leaderstats
+
 	-- Tabla para rastrear mascotas y conexiones por jugador
 	playerPets[player] = {}
 
@@ -279,6 +366,22 @@ local function setupPlayer(player)
 	petMultiplierValue.Name = "PetMultiplier"
 	petMultiplierValue.Value = 1
 	petMultiplierValue.Parent = leaderstats
+
+	-- Nivel y XP
+	local levelValue = Instance.new("IntValue")
+	levelValue.Name = "Level"
+	levelValue.Value = 1
+	levelValue.Parent = leaderstats
+
+	local xpValue = Instance.new("IntValue")
+	xpValue.Name = "XP"
+	xpValue.Value = 0
+	xpValue.Parent = leaderstats
+
+	local xpToNextValue = Instance.new("IntValue")
+	xpToNextValue.Name = "XPToNext"
+	xpToNextValue.Value = 100
+	xpToNextValue.Parent = leaderstats
 end
 
 -- Lógica de colección de monedas
@@ -309,6 +412,19 @@ local function onCoinTouched(coin, player)
 
 	local multi = calculateTotalMultiplier(player)
 	coins.Value = coins.Value + COIN_VALUE * multi
+
+	-- Ganar XP al recoger moneda
+	local level = player.leaderstats:FindFirstChild("Level")
+	local xp = player.leaderstats:FindFirstChild("XP")
+	local xpToNext = player.leaderstats:FindFirstChild("XPToNext")
+	if level and xp and xpToNext then
+		xp.Value = xp.Value + 5 * multi -- 5 XP por moneda, modificada por multi
+		if xp.Value >= xpToNext.Value then
+			xp.Value = xp.Value - xpToNext.Value
+			level.Value = level.Value + 1
+			xpToNext.Value = xpToNext.Value * 2 -- siguiente nivel cuesta el doble
+		end
+	end
 
 	-- Efectos visuales y auditivos al recoger
 	-- Crear número flotante
@@ -388,6 +504,19 @@ local function onCandyTouched(candy, player)
 
 	local multi = calculateTotalMultiplier(player)
 	candies.Value = candies.Value + CANDY_VALUE * multi
+
+	-- Ganar XP al recoger caramelo
+	local level = player.leaderstats:FindFirstChild("Level")
+	local xp = player.leaderstats:FindFirstChild("XP")
+	local xpToNext = player.leaderstats:FindFirstChild("XPToNext")
+	if level and xp and xpToNext then
+		xp.Value = xp.Value + 10 * multi -- 10 XP por caramelo, modificada por multi
+		if xp.Value >= xpToNext.Value then
+			xp.Value = xp.Value - xpToNext.Value
+			level.Value = level.Value + 1
+			xpToNext.Value = xpToNext.Value * 2 -- siguiente nivel cuesta el doble
+		end
+	end
 
 	-- Efectos visuales y auditivos al recoger
 	-- Crear número flotante
