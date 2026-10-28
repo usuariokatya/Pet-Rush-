@@ -1,4 +1,4 @@
--- HUDController.client.luau
+-- HUDController.client.luau - Versión con creación garantizada de todos los elementos
 -- Contador y display de monedas, caramelos y sistema de huevos
 
 local Players = game:GetService("Players")
@@ -26,7 +26,10 @@ if not frame then
 	frame.Parent = screenGui
 end
 
--- Crear los TextLabels para monedas y caramelos
+-- Asegurar que el Frame esté visible
+frame.Visible = true
+
+-- Crear los TextLabels para monedas y caramelos (siempre crear si no existen)
 local coinsLabel = frame:FindFirstChild("CoinsLabel")
 if not coinsLabel then
 	coinsLabel = Instance.new("TextLabel")
@@ -85,23 +88,11 @@ if not eggInfoLabel then
 	eggInfoLabel.Parent = frame
 end
 
--- También podría mostrar el multiplicador
-local multiplierLabel = frame:FindFirstChild("MultiplierLabel")
-if not multiplierLabel then
-	multiplierLabel = Instance.new("TextLabel")
-	multiplierLabel.Name = "MultiplierLabel"
-	multiplierLabel.Size = UDim2.new(1, 0, 0.1, 0)
-	multiplierLabel.Position = UDim2.new(0, 0, 0.5, 0) -- At the top middle
-	multiplierLabel.BackgroundTransparency = 1
-	multiplierLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	multiplierLabel.TextSize = 14
-	multiplierLabel.Font = Enum.Font.SourceSans
-	multiplierLabel.Text = "Multi: 1x"
-	multiplierLabel.Parent = frame
-end
-
 -- Asegurar que el texto de Coins sea visible inmediatamente
 coinsLabel.Text = "Coins: 0"
+candiesLabel.Text = "Candies: 0"
+multiplierLabel.Text = "Multi: 1x"
+eggInfoLabel.Text = "Haz clic en los huevos para intentar obtener mascotas"
 
 -- Actualizar el texto cuando cambien los leaderstats
 local function updateDisplay()
@@ -168,6 +159,7 @@ end
 updateDisplay()
 
 -- Crear botones de huevos (después de las etiquetas)
+-- Botón Huevos Comunes
 local commonEggButton = frame:FindFirstChild("CommonEggButton")
 if not commonEggButton then
 	commonEggButton = Instance.new("TextButton")
@@ -183,6 +175,15 @@ if not commonEggButton then
 	commonEggButton.Parent = frame
 end
 
+-- Conectar clic a la compra de huevos comunes
+commonEggButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("BuyCommonEgg")
+	end
+end)
+
+-- Botón Huevos Raros
 local rareEggButton = frame:FindFirstChild("RareEggButton")
 if not rareEggButton then
 	rareEggButton = Instance.new("TextButton")
@@ -198,6 +199,15 @@ if not rareEggButton then
 	rareEggButton.Parent = frame
 end
 
+-- Conectar clic a la compra de huevos raros
+rareEggButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("BuyRareEgg")
+	end
+end)
+
+-- Botón Huevos Épicos
 local epicEggButton = frame:FindFirstChild("EpicEggButton")
 if not epicEggButton then
 	epicEggButton = Instance.new("TextButton")
@@ -211,22 +221,6 @@ if not epicEggButton then
 	epicEggButton.Font = Enum.Font.SourceSans
 	epicEggButton.Text = "StarEgg (500C) - Epic:60%/Legendary:40%"
 	epicEggButton.Parent = frame
-end
-
--- Conectar clic a la compra de huevos comunes
-commonEggButton.MouseButton1Click:Connect(function()
-	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
-	if remote then
-		remote:FireServer("BuyCommonEgg")
-	end
-end)
-
--- Conectar clic a la compra de huevos raros
-rareEggButton.MouseButton1Click:Connect(function()
-	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
-	if remote then
-		remote:FireServer("BuyRareEgg")
-	end
 end
 
 -- Conectar clic a la compra de huevos épicos
@@ -254,173 +248,173 @@ if remote then
 		end
 	end)
 end
+
 -- Panel de mascotas equipadas e inventario
-	local petPanel = frame:FindFirstChild("PetPanel")
-	if not petPanel then
-		petPanel = Instance.new("Frame")
-		petPanel.Name = "PetPanel"
-		petPanel.Size = UDim2.new(1, 0, 0.3, 0)
-		petPanel.Position = UDim2.new(0, 0, 0.85, 0)
-		petPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-		petPanel.BackgroundTransparency = 0.5
-		petPanel.Parent = frame
-	end
+local petPanel = frame:FindFirstChild("PetPanel")
+if not petPanel then
+	petPanel = Instance.new("Frame")
+	petPanel.Name = "PetPanel"
+	petPanel.Size = UDim2.new(1, 0, 0.3, 0)
+	petPanel.Position = UDim2.new(0, 0, 0.85, 0)
+	petPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+	petPanel.BackgroundTransparency = 0.5
+	petPanel.Parent = frame
+end
 
-	local equippedPetLabel = petPanel:FindFirstChild("EquippedPetLabel")
-	if not equippedPetLabel then
-		equippedPetLabel = Instance.new("TextLabel")
-		equippedPetLabel.Name = "EquippedPetLabel"
-		equippedPetLabel.Size = UDim2.new(1, 0, 0.3, 0)
-		equippedPetLabel.Position = UDim2.new(0, 0, 0, 0)
-		equippedPetLabel.BackgroundTransparency = 1
-		equippedPetLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		equippedPetLabel.TextSize = 12
-		equippedPetLabel.Font = Enum.Font.SourceSans
-		equippedPetLabel.Text = "Mascota equipada: Ninguna"
-		equippedPetLabel.Parent = petPanel
-	end
+local equippedPetLabel = petPanel:FindFirstChild("EquippedPetLabel")
+if not equippedPetLabel then
+	equippedPetLabel = Instance.new("TextLabel")
+	equippedPetLabel.Name = "EquippedPetLabel"
+	equippedPetLabel.Size = UDim2.new(1, 0, 0.3, 0)
+	equippedPetLabel.Position = UDim2.new(0, 0, 0, 0)
+	equippedPetLabel.BackgroundTransparency = 1
+	equippedPetLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	equippedPetLabel.TextSize = 12
+	equippedPetLabel.Font = Enum.Font.SourceSans
+	equippedPetLabel.Text = "Mascota equipada: Ninguna"
+	equippedPetLabel.Parent = petPanel
+end
 
-	local inventoryLabel = petPanel:FindFirstChild("InventoryLabel")
-	if not inventoryLabel then
-		inventoryLabel = Instance.new("TextLabel")
-		inventoryLabel.Name = "InventoryLabel"
-		inventoryLabel.Size = UDim2.new(1, 0, 0.3, 0)
-		inventoryLabel.Position = UDim2.new(0, 0, 0.35, 0)
-		inventoryLabel.BackgroundTransparency = 1
-		inventoryLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-		inventoryLabel.TextSize = 11
-		inventoryLabel.Font = Enum.Font.SourceSans
-		inventoryLabel.Text = "Inventario: (vacío)"
-		inventoryLabel.Parent = petPanel
-	end
+local inventoryLabel = petPanel:FindFirstChild("InventoryLabel")
+if not inventoryLabel then
+	inventoryLabel = Instance.new("TextLabel")
+	inventoryLabel.Name = "InventoryLabel"
+	inventoryLabel.Size = UDim2.new(1, 0, 0.3, 0)
+	inventoryLabel.Position = UDim2.new(0, 0, 0.35, 0)
+	inventoryLabel.BackgroundTransparency = 1
+	inventoryLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+	inventoryLabel.TextSize = 11
+	inventoryLabel.Font = Enum.Font.SourceSans
+	inventoryLabel.Text = "Inventario: (vacío)"
+	inventoryLabel.Parent = petPanel
+end
 
-	local function updatePetPanel()
-		local leaderstats = Player:FindFirstChild("leaderstats")
-		if not leaderstats then return end
-
-		-- Actualizar mascota equipada
-		local equippedValue = leaderstats:FindFirstChild("EquippedPet")
-		if equippedValue and equippedValue.Value ~= "" then
-			equippedPetLabel.Text = "Mascota equipada: " .. equippedValue.Value
-		else
-			equippedPetLabel.Text = "Mascota equipada: Ninguna"
-		end
-
-		-- Actualizar inventario
-		local petsFolder = Player:FindFirstChild("Pets")
-		local inventoryFolder = Player:FindFirstChild("Inventory")
-		local inventoryText = "Inventario: "
-		if inventoryFolder then
-			local petCount = 0
-			for _, child in pairs(inventoryFolder:GetChildren()) do
-				if child:IsA("StringValue") then
-					petCount = petCount + 1
-				end
-			end
-			inventoryText = inventoryText .. petCount .. " mascota(s) en inv."
-		else
-			inventoryText = inventoryText .. "(vacío)"
-		end
-		inventoryLabel.Text = inventoryText
-	end
-
-	-- Conectar actualizaciones
+local function updatePetPanel()
 	local leaderstats = Player:FindFirstChild("leaderstats")
-	if leaderstats then
-		leaderstats.Changed:Connect(updatePetPanel)
-		local pets = Player:FindFirstChild("Pets")
-		if pets then
-			pets.Changed:Connect(updatePetPanel)
-		end
-		local inventory = Player:FindFirstChild("Inventory")
-		if inventory then
-			inventory.Changed:Connect(updatePetPanel)
-		end
+	if not leaderstats then return end
+
+	-- Actualizar mascota equipada
+	local equippedValue = leaderstats:FindFirstChild("EquippedPet")
+	if equippedValue and equippedValue.Value ~= "" then
+		equippedPetLabel.Text = "Mascota equipada: " .. equippedValue.Value
+	else
+		equippedPetLabel.Text = "Mascota equipada: Ninguna"
 	end
+
+	-- Actualizar inventario
+	local petsFolder = Player:FindFirstChild("Pets")
+	local inventoryFolder = Player:FindFirstChild("Inventory")
+	local inventoryText = "Inventario: "
+	if inventoryFolder then
+		local petCount = 0
+		for _, child in pairs(inventoryFolder:GetChildren()) do
+			if child:IsA("StringValue") then
+				petCount = petCount + 1
+			end
+		end
+		inventoryText = inventoryText .. petCount .. " mascota(s) en inv."
+	else
+		inventoryText = inventoryText .. "(vacío)"
+	end
+	inventoryLabel.Text = inventoryText
+end
+
+-- Conectar actualizaciones
+local leaderstats = Player:FindFirstChild("leaderstats")
+if leaderstats then
+	leaderstats.Changed:Connect(updatePetPanel)
+	local pets = Player:FindFirstChild("Pets")
+	if pets then
+		pets.Changed:Connect(updatePetPanel)
+	end
+	local inventory = Player:FindFirstChild("Inventory")
+	if inventory then
+		inventory.Changed:Connect(updatePetPanel)
+	end
+end
 
 -- Actualizar panel al cargar
-	updatePetPanel()
+updatePetPanel()
 
 -- Botones de equipar/desequipar
-	local equipButton = petPanel:FindFirstChild("EquipButton")
-	if not equipButton then
-		equipButton = Instance.new("TextButton")
-		equipButton.Name = "EquipButton"
-		equipButton.Size = UDim2.new(0, 80, 0, 20)
-		equipButton.Position = UDim2.new(0.1, 0, 0.75, 0)
-		equipButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
-		equipButton.BackgroundTransparency = 0.3
-		equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		equipButton.TextSize = 11
-		equipButton.Font = Enum.Font.SourceSans
-		equipButton.Text = "Equipar"
-		equipButton.Parent = petPanel
-	end
+local equipButton = petPanel:FindFirstChild("EquipButton")
+if not equipButton then
+	equipButton = Instance.new("TextButton")
+	equipButton.Name = "EquipButton"
+	equipButton.Size = UDim2.new(0, 80, 0, 20)
+	equipButton.Position = UDim2.new(0.1, 0, 0.75, 0)
+	equipButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+	equipButton.BackgroundTransparency = 0.3
+	equipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	equipButton.TextSize = 11
+	equipButton.Font = Enum.Font.SourceSans
+	equipButton.Text = "Equipar"
+	equipButton.Parent = petPanel
+end
 
-	local unequipButton = petPanel:FindFirstChild("UnequipButton")
-	if not unequipButton then
-		unequipButton = Instance.new("TextButton")
-		unequipButton.Name = "UnequipButton"
-		unequipButton.Size = UDim2.new(0, 80, 0, 20)
-		unequipButton.Position = UDim2.new(0.1, 0, 0.82, 0)
-		unequipButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
-		unequipButton.BackgroundTransparency = 0.3
-		unequipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		unequipButton.TextSize = 11
-		unequipButton.Font = Enum.Font.SourceSans
-		unequipButton.Text = "Desequipar"
-		unequipButton.Parent = petPanel
-	end
+local unequipButton = petPanel:FindFirstChild("UnequipButton")
+if not unequipButton then
+	unequipButton = Instance.new("TextButton")
+	unequipButton.Name = "UnequipButton"
+	unequipButton.Size = UDim2.new(0, 80, 0, 20)
+	unequipButton.Position = UDim2.new(0.1, 0, 0.82, 0)
+	unequipButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+	unequipButton.BackgroundTransparency = 0.3
+	unequipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	unequipButton.TextSize = 11
+	unequipButton.Font = Enum.Font.SourceSans
+	unequipButton.Text = "Desequipar"
+	unequipButton.Parent = petPanel
+end
 
-	-- Conectar clic Equipar
-	equipButton.MouseButton1Click:Connect(function()
-		local leaderstats = Player:FindFirstChild("leaderstats")
-		if not leaderstats then return end
-		local equipped = leaderstats:FindFirstChild("EquippedPet")
-		if not equipped then return end
-		local currentPet = equipped.Value
-		if currentPet == "" then
-			-- Ninguna equipada, pedir al servidor que equipé la primera
-			local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
-			if remote then
-				remote:FireServer("EquipPet", "")
-			end
-		else
-			local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
-			if remote then
-				remote:FireServer("EquipPet", currentPet)
-			end
-		end
-	end)
-
-	-- Conectar clic Desequipar
-	unequipButton.MouseButton1Click:Connect(function()
+-- Conectar clic Equipar
+equipButton.MouseButton1Click:Connect(function()
+	local leaderstats = Player:FindFirstChild("leaderstats")
+	if not leaderstats then return end
+	local equipped = leaderstats:FindFirstChild("EquippedPet")
+	if not equipped then return end
+	local currentPet = equipped.Value
+	if currentPet == "" then
 		local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
 		if remote then
-			remote:FireServer("UnequipPet", "")
+			remote:FireServer("EquipPet", "")
 		end
-	end)
+	else
+		local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+		if remote then
+			remote:FireServer("EquipPet", currentPet)
+		end
+	end
+end)
+
+-- Conectar clic Desequipar
+unequipButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("UnequipPet", "")
+	end
+end)
 
 -- Botón Tienda: Slot Extra
-	local extraSlotButton = petPanel:FindFirstChild("ExtraSlotButton")
-	if not extraSlotButton then
-		extraSlotButton = Instance.new("TextButton")
-		extraSlotButton.Name = "ExtraSlotButton"
-		extraSlotButton.Size = UDim2.new(0, 100, 0, 25)
-		extraSlotButton.Position = UDim2.new(0, 5, 0.90, 0)
-		extraSlotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-		extraSlotButton.BackgroundTransparency = 0.3
-		extraSlotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		extraSlotButton.TextSize = 11
-		extraSlotButton.Font = Enum.Font.SourceSans
-		extraSlotButton.Text = "Extra Slot (300C) - Desbloquea 4ª mascota"
-		extraSlotButton.Parent = petPanel
-	end
+local extraSlotButton = petPanel:FindFirstChild("ExtraSlotButton")
+if not extraSlotButton then
+	extraSlotButton = Instance.new("TextButton")
+	extraSlotButton.Name = "ExtraSlotButton"
+	extraSlotButton.Size = UDim2.new(0, 100, 0, 25)
+	extraSlotButton.Position = UDim2.new(0, 5, 0.90, 0)
+	extraSlotButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	extraSlotButton.BackgroundTransparency = 0.3
+	extraSlotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	extraSlotButton.TextSize = 11
+	extraSlotButton.Font = Enum.Font.SourceSans
+	extraSlotButton.Text = "Extra Slot (300C) - Desbloquea 4ª mascota"
+	extraSlotButton.Parent = petPanel
+end
 
-	-- Conectar clic Extra Slot
-	extraSlotButton.MouseButton1Click:Connect(function()
-		local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
-		if remote then
-			remote:FireServer("ExtraPetSlot", "")
-		end
-	end)
+-- Conectar clic Extra Slot
+extraSlotButton.MouseButton1Click:Connect(function()
+	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+	if remote then
+		remote:FireServer("ExtraPetSlot", "")
+	end
+end)
