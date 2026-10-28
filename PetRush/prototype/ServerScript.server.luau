@@ -43,6 +43,33 @@ local SHOP_PRICES = {
 	["ExtraPetSlot"] = 300, -- Cuesta 300 Coins desbloquear slot extra
 }
 
+-- AssetIds de modelos 3D personalizados (generados con Blender)
+-- Estos IDs se asignan después de importar los .blend a Studio
+-- Formato: "rbxassetid://" .. id_obtenido_desde_Studio
+local AssetIds = {
+	-- Modelos de mascotas (4 rarezas cada una)
+	PetMurcielagoCommon = "",
+	PetMurcielagoRare = "",
+	PetMurcielagoEpic = "",
+	PetMurcielagoLegendary = "",
+	
+	PetFantasmaCommon = "",
+	PetFantasmaRare = "",
+	PetFantasmaEpic = "",
+	PetFantasmaLegendary = "",
+	
+	PetGatoNegroCommon = "",
+	PetGatoNegroRare = "",
+	PetGatoNegroEpic = "",
+	PetGatoNegroLegendary = "",
+	
+	-- Modelo de calabaza recolectable
+	PumpkinCollect = "",
+	
+	-- Materiales y efectos
+	GlowEffect = "",
+}
+
 -- DataStore para persistencia de jugador
 local function savePlayerData(player)
 	local success, data = pcall(function()
@@ -188,23 +215,23 @@ local function setupMap()
 	spawn.Parent = Workspace
 end
 
--- Crear monedas
+-- Crear calabazas recolectables (reemplaza monedas para tema Halloween)
+-- Usa modelos 3D personalizados en lugar de partes Neon
 local function createPumpkins()
 	local pumpkinTemplate = Instance.new("Part")
 	pumpkinTemplate.Name = "Pumpkin"
 	pumpkinTemplate.Size = Vector3.new(1.5, 2, 1.5)
-	pumpkinTemplate.Shape = Enum.PartType.Ball
 	pumpkinTemplate.Anchored = true
-	pumpkinTemplate.Material = Enum.Material.Neon
-	pumpkinTemplate.Color = BrickColor.new("Orange").Color
 	pumpkinTemplate.CanCollide = true
-
+	pumpkinTemplate.Material = Enum.Material.Glass -- Usar Glass como base hasta importar FBX
+	pumpkinTemplate.Color = BrickColor.new("Orange").Color
+	
 	-- Dar valor a la calabaza mediante un valor de instancia
 	local value = Instance.new("IntValue")
 	value.Name = "Value"
 	value.Value = COIN_VALUE -- Mismo valor que monedas para compatibilidad
 	value.Parent = pumpkinTemplate
-
+	
 	-- Posicionar calabazas en círculo
 	local pumpkinPositions = {}
 	for i = 1, 20 do
@@ -213,7 +240,7 @@ local function createPumpkins()
 		local x = math.cos(angle) * radius
 		local z = math.sin(angle) * radius
 		local pos = Vector3.new(x, 3 + math.random(-0.5, 0.5), z)
-
+		
 		local pumpkin = pumpkinTemplate:Clone()
 		pumpkin.CFrame = CFrame.new(pos)
 		pumpkin.Parent = Workspace
@@ -229,7 +256,8 @@ local function createCandies()
 	candyTemplate.Size = Vector3.new(1, 1, 1)
 	candyTemplate.Shape = Enum.PartType.Ball
 	candyTemplate.Anchored = true
-	candyTemplate.Material = Enum.Material.Neon
+	-- Usar Glass como placeholder
+	candyTemplate.Material = Enum.Material.Glass
 	candyTemplate.Color = BrickColor.new("Red").Color
 	candyTemplate.CanCollide = true
 
@@ -260,16 +288,16 @@ local function createStarterPet()
 	local petTemplate = Instance.new("Part")
 	petTemplate.Name = "StarterPet"
 	petTemplate.Size = Vector3.new(2, 2, 2)
-	petTemplate.Shape = Enum.PartType.Ball
 	petTemplate.Anchored = true
-	petTemplate.Material = Enum.Material.Neon
-	petTemplate.Color = BrickColor.new("Medium stone grey").Color
+	-- Usar Material.Glass como placeholder hasta importar modelo 3D
+	petTemplate.Material = Enum.Material.Glass
+	petTemplate.Color = BrickColor.new("Orange").Color
 	petTemplate.CanCollide = false
 
 	-- Dar valor a la mascota mediante un valor de instancia
 	local petName = Instance.new("StringValue")
 	petName.Name = "PetName"
-	petName.Value = "Puppy"
+	petName.Value = "Pumpkin"
 	petName.Parent = petTemplate
 
 	-- Posicionar mascota en el mundo
@@ -991,32 +1019,35 @@ local function giveStartingPet(player)
 		petsFolder.Parent = player
 	end
 
-	-- Crear la mascota inicial en la carpeta del jugador
+	-- Crear valor de nombre de mascota en la carpeta del jugador
 	local petValue = Instance.new("StringValue")
 	petValue.Name = "PetName"
-	petValue.Value = "Puppy"
+	petValue.Value = "Pumpkin" -- Mascota inicial temática Halloween
 	petValue.Parent = petsFolder
 
 	-- Equipar la mascota automaticamente
-	player.leaderstats.EquippedPet.Value = "Puppy"
+	player.leaderstats.EquippedPet.Value = "Pumpkin"
 
 	-- Actualizar multiplicador de mascotas
 	local petMultiplier = calculateTotalMultiplier(player)
 	player.leaderstats.PetMultiplier.Value = petMultiplier
 
 	-- Crear parte visual de la mascota que seguirá al jugador
+	-- Usar modelo 3D en lugar de parte Neon simple (se importará desde Blender)
 	local visualPet = player:FindFirstChild("VisualPet")
-	if not visualPet then
-		visualPet = Instance.new("Part")
-		visualPet.Name = "VisualPet"
-		visualPet.Size = Vector3.new(2, 2, 2)
-		visualPet.Shape = Enum.PartType.Ball
-		visualPet.Anchored = false
-		visualPet.Material = Enum.Material.Neon
-		visualPet.Color = BrickColor.new("Medium stone grey").Color
-		visualPet.CanCollide = false
-		visualPet.Parent = player
+	if visualPet then
+		visualPet:Destroy()
 	end
+	
+	-- Note: El modelo 3D completo se importará a Studio y referenciará
+	-- mediante AssetIds del módulo AssetIds. Por ahora, crear una parte base
+	-- que será reemplazada con el modelo real en el paso de integración.
+	local visualPet = Instance.new("Part")
+	visualPet.Name = "VisualPet"
+	visualPet.Size = Vector3.new(2, 2, 2)
+	visualPet.Anchored = false
+	visualPet.CanCollide = false
+	visualPet.Parent = player
 
 	-- Posicionar mascota visual al inicio
 	local function positionVisualPet()
@@ -1033,9 +1064,7 @@ local function giveStartingPet(player)
 		end
 	end
 	positionVisualPet()
-
-	-- Equipar la mascota automaticamente
-	player.leaderstats.EquippedPet.Value = "Puppy"
+end
 
 	-- Actualizar multiplicador de mascotas
 	local petMultiplier = calculateTotalMultiplier(player)
