@@ -42,10 +42,10 @@ This project creates all 3D models from scratch using Blender's Python API (bpy)
    - Epic: acentos dorados `#FFD23F`
    - Legendary: brillo interior intensivo + aura emisiva
 
-#### RECOLECTABLES (6 tipos)
+#### RECOLECTABLES (4 tipos)
 5. **Calabaza pequeña** - 2 studs de ancho, gajos, tallo, color naranja, plana por abajo
 6. **Caramelo envuelto** - Cuerpo ovalado y dos lazos a los lados, rayas moradas y naranjas
-6. **Caramelo de maíz (candy corn)** - Triángulo redondeado, tres bandas (blanco, naranja, amarillo)
+7. **Caramelo de maíz (candy corn)** - Triángulo redondeado, tres bandas (blanco, naranja, amarillo)
 
 #### HUEVOS (3 tipos, uno por botón de tienda)
 8. **Huevo común** - naranja con manchas moradas
@@ -64,7 +64,7 @@ This project creates all 3D models from scratch using Blender's Python API (bpy)
 17. **Farol con vela** - poste negro y llama amarilla emisiva
 18. **Caldero con burbujas verdes**
 19. **Telaraña de esquina** (plano blanco)
-19. **Puerta de cementerio en arco** con dos pilares
+20. **Puerta de cementerio en arco** con dos pilares
 
 ### Technical Notes
 - **Estilo:** Low poly, redondeado, simpático, tipo juguete (estilo chibi)
