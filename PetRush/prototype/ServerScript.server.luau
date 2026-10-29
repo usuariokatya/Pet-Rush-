@@ -45,29 +45,33 @@ local SHOP_PRICES = {
 
 -- AssetIds de modelos 3D personalizados (generados con Blender)
 -- Estos IDs se asignan después de importar los .blend a Studio
+-- PASO MANUAL: En Studio, haz clic derecho en ScreenGui/Frame -> Insert Object -> Special -> 3D Model
+-- Luego asigna el AssetId que te devuelve Studio después de importar cada FBX
 -- Formato: "rbxassetid://" .. id_obtenido_desde_Studio
 local AssetIds = {
 	-- Modelos de mascotas (4 rarezas cada una)
-	PetMurcielagoCommon = "",
-	PetMurcielagoRare = "",
-	PetMurcielagoEpic = "",
-	PetMurcielagoLegendary = "",
+	-- [PENDING] Llenar después de importar a Studio via MCP o manualmente
+	PetMurcielagoCommon = "rbxassetid://00000000",  -- placeholder: importar Murcielago_Common.fbx
+	PetMurcielagoRare = "rbxassetid://00000000",    -- placeholder: importar Murcielago_Rare.fbx
+	PetMurcielagoEpic = "rbxassetid://00000000",   -- placeholder: importar Murcielago_Epic.fbx
+	PetMurcielagoLegendary = "rbxassetid://00000000", -- placeholder: importar Murcielago_Legendary.fbx
 	
-	PetFantasmaCommon = "",
-	PetFantasmaRare = "",
-	PetFantasmaEpic = "",
-	PetFantasmaLegendary = "",
+	PetFantasmaCommon = "rbxassetid://00000000",    -- placeholder: importar Fantasma_Common.fbx
+	PetFantasmaRare = "rbxassetid://00000000",      -- placeholder: importar Fantasma_Rare.fbx
+	PetFantasmaEpic = "rbxassetid://00000000",      -- placeholder: importar Fantasma_Epic.fbx
+	PetFantasmaLegendary = "rbxassetid://00000000", -- placeholder: importar Fantasma_Legendary.fbx
 	
-	PetGatoNegroCommon = "",
-	PetGatoNegroRare = "",
-	PetGatoNegroEpic = "",
-	PetGatoNegroLegendary = "",
+	PetGatoNegroCommon = "rbxassetid://00000000",   -- placeholder: importar Gato_negro_Common.fbx
+	PetGatoNegroRare = "rbxassetid://00000000",     -- placeholder: importar Gato_negro_Rare.fbx
+	PetGatoNegroEpic = "rbxassetid://00000000",     -- placeholder: importar Gato_negro_Epic.fbx
+	PetGatoNegroLegendary = "rbxassetid://00000000", -- placeholder: importar Gato_negro_Legendary.fbx
 	
 	-- Modelo de calabaza recolectable
-	PumpkinCollect = "",
+	-- [PENDING] Llenar después de importar a Studio via MCP o manualmente
+	PumpkinCollect = "rbxassetid://00000000",  -- placeholder: importar Calabaza_Common.fbx
 	
 	-- Materiales y efectos
-	GlowEffect = "",
+	GlowEffect = "rbxassetid://00000000",  -- placeholder: ParticleEmitter + PointLight para Legendary
 }
 
 -- DataStore para persistencia de jugador
@@ -1183,3 +1187,121 @@ end
 
 -- Ejecutar init
 init()
+-- Decoración Halloween: lápidas, árboles secos, valla, farolas
+-- Usando partes de Roblox con Materiales temáticos
+
+-- Lápidas (3 variantes)
+local tombstoneColors = {
+    BrickColor.new("Dark stone").Color,
+    BrickColor.new("Really black").Color, 
+    BrickColor.new("Really maroon").Color
+}
+local tombstoneTemplates = {}
+for _, color in ipairs(tombstoneColors) do
+    local template = Instance.new("Part")
+    template.Name = "Tombstone"
+    template.Size = Vector3.new(3, 0.5, 3)
+    template.Anchored = true
+    template.CanCollide = true
+    template.Material = Enum.Material.Grass
+    template.Color = color
+    template.Parent = Workspace
+    table.insert(tombstoneTemplates, template)
+end
+
+-- Posicionar lápidas en círculo alrededor del mapa
+local function placeTombstones()
+    for i, template in ipairs(tombstoneTemplates) do
+        local angle = (i / #tombstoneTemplates) * math.pi * 2
+        local radius = 12
+        local x = math.cos(angle) * radius
+        local z = math.sin(angle) * radius
+        template.CFrame = CFrame.new(x, 0.5, z)
+    end
+end
+
+-- Árboles secos
+local function createDryTrees()
+    for i = 1, 8 do
+        local tree = Instance.new("Part")
+        tree.Name = "DryTree"
+        tree.Size = Vector3.new(1, 5, 1)
+        tree.Anchored = true
+        tree.CanCollide = false
+        tree.Material = Enum.Material.Wood
+        tree.Color = BrickColor.new("Brown").Color
+        tree.CFrame = CFrame.new(math.random(-15, 15), 2.5, math.random(-15, 15))
+        tree.Parent = Workspace
+    end
+end
+
+-- Valla de hierro
+local function createFence()
+    for i = 1, 16 do
+        local fencePart = Instance.new("Part")
+        fencePart.Name = "FenceSection"
+        fencePart.Size = Vector3.new(1, 5, 0.2)
+        fencePart.Anchored = true
+        fencePart.CanCollide = true
+        fencePart.Material = Enum.Material.Iron
+        fencePart.Color = BrickColor.new("White").Color
+        local posX = (i - 1) % 4 * 5 - 15
+        local posZ = math.floor((i - 1) / 4) * 5 - 15
+        fencePart.CFrame = CFrame.new(posX, 2.5, posZ)
+        fencePart.Parent = Workspace
+    end
+end
+
+-- Farolas con PointLight
+local function createLanterns()
+    for i = 1, 12 do
+        local lantern = Instance.new("Part")
+        lantern.Name = "Lantern"
+        lantern.Size = Vector3.new(0.5, 1, 0.5)
+        lantern.Anchored = true
+        lantern.CanCollide = false
+        lantern.Material = Enum.Material.Neon
+        lantern.Color = Color3.fromRGB(255, 165, 0)
+        local angle = i * 0.5
+        local posX = math.cos(angle) * 10
+        local posZ = math.sin(angle) * 10
+        lantern.CFrame = CFrame.new(posX, 2, posZ)
+        lantern.Parent = Workspace
+        
+        -- PointLight attached to lantern
+        local light = Instance.new("PointLight")
+        light.Parent = lantern
+        light.Range = 10
+        light.Color = Color3.fromRGB(255, 100, 0)
+        light.Intensity = 1
+    end
+end
+
+-- Configurar música de Halloween desde Creator Store
+local function setupHalloweenMusic()
+    local sound = Instance.new("Sound")
+    sound.Name = "HalloweenMusic"
+    sound.SoundId = "rbxassetid://91018473" -- Example spooky music ID from Creator Store
+    sound.Loop = true
+    sound.Volume = 0.5
+    sound.Parent = Lighting
+    sound:Play()
+end
+
+-- Ejecutar todas las funciones de decoración
+placeTombstones()
+createDryTrees()
+createFence()
+createLanterns()
+setupHalloweenMusic()
+
+-- Efecto Legendary: ParticleEmitter + PointLight
+-- Este efecto se aplica en Roblox cuando una mascota es Legendary
+-- No use emission de Blender - el efecto se maneja aquí en el servidor
+-- Ejemplo de cómo aplicarlo a una parte:
+-- local pe = Instance.new("ParticleEmitter")
+-- pe.Texture = "rbxassetid://239768948" -- sparkle texture
+-- pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+-- pe.Lifetime = NumberRange.new(5, 10)
+-- pe.Rate = 10
+-- pe.Parent = modelPart

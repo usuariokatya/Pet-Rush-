@@ -411,6 +411,326 @@ if not extraSlotButton then
 	extraSlotButton.Parent = petPanel
 end
 
+-- Sistema de 3 Habilidades con cooldown visible
+-- Activables por teclado o botones HUD
+
+-- Configuración de habilidades
+local SkillConfig = {
+    -- Imán: atrae monedas y caramelos hacia el jugador
+    Magnet = {
+        Name = "Magnet",
+        Cooldown = 30, -- segundos
+        CostCoins = 0,
+        CostCandies = 0,
+        Description = "Atrae monedas y caramelos hacia ti por 10 segundos"
+    },
+    -- Botas Veloces: aumenta velocidad de movimiento
+    SpeedBoost = {
+        Name = "SpeedBoost",
+        Cooldown = 45, -- segundos
+        Duration = 10, -- segundos que dura el efecto
+        CostCoins = 100,
+        CostCandies = 50,
+        Description = "Aumenta velocidad en 50% por 10s"
+    },
+    -- Poción Double Reward: duplica recompensas por 30 segundos
+    DoubleReward = {
+        Name = "DoubleReward",
+        Cooldown = 60, -- segundos
+        Duration = 30, -- segundos que dura el efecto
+        CostCoins = 200,
+        CostCandies = 100,
+        Description = "Duplica monedas y caramelos por 30s"
+    }
+}
+
+-- Estado actual de habilidades
+local skillState = {
+    [SkillConfig.Magnet.Name] = {
+        active = false,
+        cooldownRemaining = 0,
+        endTime = 0
+    },
+    [SkillConfig.SpeedBoost.Name] = {
+        active = false,
+        cooldownRemaining = 0,
+        endTime = 0
+    },
+    [SkillConfig.DoubleReward.Name] = {
+        active = false,
+        cooldownRemaining = 0,
+        endTime = 0
+    }
+}
+
+-- Crear o actualizar el marco de habilidades en el HUD
+local function createSkillsFrame()
+    local frame = script.Parent:FindFirstChild("SkillsFrame")
+    if frame then
+        frame:Destroy()
+    end
+    
+    local skillsFrame = Instance.new("Frame")
+    skillsFrame.Name = "SkillsFrame"
+    skillsFrame.Size = UDim2.new(0, 300, 0, 120)
+    skillsFrame.Position = UDim2.new(0, 10, 0, 160)
+    skillsFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    skillsFrame.BackgroundTransparency = 0.5
+    skillsFrame.Parent = script.Parent
+    
+    -- Título
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Size = UDim2.new(1, 0, 0, 20)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 14
+    title.Font = Enum.Font.SourceSans
+    title.Text = "Habilidades (Cooldown)"
+    title.Parent = skillsFrame
+    
+    -- Botón Imán
+    local magnetButton = Instance.new("TextButton")
+    magnetButton.Name = "MagnetButton"
+    magnetButton.Size = UDim2.new(0, 90, 0, 25)
+    magnetButton.Position = UDim2.new(0, 5, 0, 30)
+    magnetButton.BackgroundColor3 = Color3.fromRGB(50, 50, 150)
+    magnetButton.BackgroundTransparency = 0.3
+    magnetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    magnetButton.TextSize = 11
+    magnetButton.Font = Enum.Font.SourceSans
+    magnetButton.Text = "Imán"
+    magnetButton.Parent = skillsFrame
+    
+    -- Cooldown del Imán
+    local magnetCooldown = Instance.new("TextLabel")
+    magnetCooldown.Name = "MagnetCooldown"
+    magnetCooldown.Size = UDim2.new(0, 90, 0, 15)
+    magnetCooldown.Position = UDim2.new(0, 5, 0, 55)
+    magnetCooldown.BackgroundTransparency = 1
+    magnetCooldown.TextColor3 = Color3.fromRGB(200, 200, 200)
+    magnetCooldown.TextSize = 10
+    magnetCooldown.Font = Enum.Font.SourceSans
+    magnetCooldown.Text = "Listo"
+    magnetCooldown.Parent = skillsFrame
+    
+    -- Botón Botas Veloces
+    local speedButton = Instance.new("TextButton")
+    speedButton.Name = "SpeedButton"
+    speedButton.Size = UDim2.new(0, 90, 0, 25)
+    speedButton.Position = UDim2.new(0, 105, 0, 30)
+    speedButton.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+    speedButton.BackgroundTransparency = 0.3
+    speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    speedButton.TextSize = 11
+    speedButton.Font = Enum.Font.SourceSans
+    speedButton.Text = "Botas"
+    speedButton.Parent = skillsFrame
+    
+    -- Cooldown de Botas
+    local speedCooldown = Instance.new("TextLabel")
+    speedCooldown.Name = "SpeedCooldown"
+    speedCooldown.Size = UDim2.new(0, 90, 0, 15)
+    speedCooldown.Position = UDim2.new(0, 105, 0, 55)
+    speedCooldown.BackgroundTransparency = 1
+    speedCooldown.TextColor3 = Color3.fromRGB(200, 200, 200)
+    speedCooldown.TextSize = 10
+    speedCooldown.Font = Enum.Font.SourceSans
+    speedCooldown.Text = "Listo"
+    speedCooldown.Parent = skillsFrame
+    
+    -- Botón Double Reward
+    local doubleButton = Instance.new("TextButton")
+    doubleButton.Name = "DoubleButton"
+    doubleButton.Size = UDim2.new(0, 90, 0, 25)
+    doubleButton.Position = UDim2.new(0, 210, 0, 30)
+    doubleButton.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+    doubleButton.BackgroundTransparency = 0.3
+    doubleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    doubleButton.TextSize = 11
+    doubleButton.Font = Enum.Font.SourceSans
+    doubleButton.Text = "Double"
+    doubleButton.Parent = skillsFrame
+    
+    -- Cooldown Double Reward
+    local doubleCooldown = Instance.new("TextLabel")
+    doubleCooldown.Name = "DoubleCooldown"
+    doubleCooldown.Size = UDim2.new(0, 90, 0, 15)
+    doubleCooldown.Position = UDim2.new(0, 210, 0, 55)
+    doubleCooldown.BackgroundTransparency = 1
+    doubleCooldown.TextColor3 = Color3.fromRGB(200, 200, 200)
+    doubleCooldown.TextSize = 10
+    doubleCooldown.Font = Enum.Font.SourceSans
+    doubleCooldown.Text = "Listo"
+    doubleCooldown.Parent = skillsFrame
+    
+    -- Conectar botones
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+    
+    -- Función para actualizar cooldowns en el cliente
+    local function updateSkillCooldowns()
+        for name, state in pairs(skillState) do
+            if state.active then
+                local now = tick()
+                if now >= state.endTime then
+                    -- Efecto terminado
+                    state.active = false
+                    state.cooldownRemaining = state.cooldown
+                    -- Remover efecto del jugador
+                    if name == SkillConfig.Magnet.Name then
+                        -- Remover partículas de imán
+                    elseif name == SkillConfig.SpeedBoost.Name then
+                        -- Restaurar velocidad normal
+                        local character = Player.Character
+                        if character then
+                            local hrp = character:FindFirstChild("HumanoidRootPart")
+                            local hum = character:FindFirstChild("Humanoid")
+                            if hum then
+                                hum.WalkSpeed = 16 -- velocidad base
+                            end
+                        end
+                    elseif name == SkillConfig.DoubleReward.Name then
+                        -- Restaurar multiplicador normal
+                        local leaderstats = Player:FindFirstChild("leaderstats")
+                        if leaderstats then
+                            local multi = leaderstats:FindFirstChild("PetMultiplier")
+                            if multi then
+                                multi.Value = 1
+                            end
+                        end
+                    end
+                else
+                    -- Todavía en efecto o en enfriamiento
+                    state.cooldownRemaining = math.max(0, math.ceil(state.endTime - now))
+                end
+            end
+        end
+    end
+    
+    -- Actualizar cooldowns cada segundo
+    while true do
+        task.wait(1)
+        updateSkillCooldowns()
+    end
+    
+    -- Botón Imán - activar/desactivar
+    magnetButton.MouseButton1Click:Connect(function()
+        local state = skillState[SkillConfig.Magnet.Name]
+        if state.cooldownRemaining <= 0 then
+            -- Activar habilidad
+            state.active = true
+            state.endTime = tick() + SkillConfig.Magnet.Duration
+            
+            -- Efecto visual: crear partículas alrededor del jugador
+            local character = Player.Character
+            if character then
+                local hrp = character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    -- Crear ParticleEmitter para imán
+                    local pe = Instance.new("ParticleEmitter")
+                    pe.Rate = 5
+                    pe.Lifetime = NumberRange.new(2, 5)
+                    pe.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
+                    pe.Size = NumberSequence.new(2, 4)
+                    pe.Parent = hrp
+                    
+                    -- Quitar después de un tiempo
+                    task.delay(SkillConfig.Magnet.Duration, function()
+                        if pe and pe.Parent then
+                            pe:Destroy()
+                        end
+                    end)
+                end
+            end
+            
+            -- Poner en cooldown
+            state.cooldownRemaining = SkillConfig.Magnet.Cooldown
+        else
+            print("Habilidad " .. SkillConfig.Magnet.Name .. " en cooldown: " .. state.cooldownRemaining .. "s")
+        end
+    end)
+    
+    -- Botón Botas Veloces
+    speedButton.MouseButton1Click:Connect(function()
+        local state = skillState[SkillConfig.SpeedBoost.Name]
+        if state.cooldownRemaining <= 0 then
+            -- Activar habilidad
+            state.active = true
+            state.endTime = tick() + SkillConfig.SpeedBoost.Duration
+            
+            -- Aumentar velocidad
+            local character = Player.Character
+            if character then
+                local hum = character:FindFirstChild("Humanoid")
+                if hum then
+                    hum.WalkSpeed = 24 -- 50% más rápido
+                end
+            end
+            
+            -- Poner en cooldown
+            state.cooldownRemaining = SkillConfig.SpeedBoost.Cooldown
+        else
+            print("Habilidad " .. SkillConfig.SpeedBoost.Name .. " en cooldown: " .. state.cooldownRemaining .. "s")
+        end
+    end)
+    
+    -- Botón Double Reward
+    doubleButton.MouseButton1Click:Connect(function()
+        local state = skillState[SkillConfig.DoubleReward.Name]
+        if state.cooldownRemaining <= 0 then
+            -- Activar habilidad
+            state.active = true
+            state.endTime = tick() + SkillConfig.DoubleReward.Duration
+            
+            -- Duplicar multiplicador
+            local leaderstats = Player:FindFirstChild("leaderstats")
+            if leaderstats then
+                local multi = leaderstats:FindFirstChild("PetMultiplier")
+                if multi then
+                    multi.Value = multi.Value * 2
+                end
+            end
+            
+            -- Poner en cooldown
+            state.cooldownRemaining = SkillConfig.DoubleReward.Cooldown
+        else
+            print("Habilidad " .. SkillConfig.DoubleReward.Name .. " en cooldown: " .. state.cooldownRemaining .. "s")
+        end
+    end)
+end
+
+-- Conectar cuando el ScreenGui se cargue
+local screenGui = Player:WaitForChild("PlayerGui"):FindFirstChild("CoinHUD")
+if screenGui then
+    createSkillsFrame(script.Parent)
+end
+
+-- Comunicación con servidor para validación de habilidades
+local function activateSkillServer(skillName)
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+    if remote then
+        remote:FireServer("ActivateSkill", skillName)
+    end
+end
+
+-- Escuchar confirmación del servidor
+local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+if remote then
+    remote.OnClientEvent:Connect(function(success, message, skillName)
+        if success then
+            print("Habilidad activada: " .. skillName .. " - " .. message)
+            -- El efecto ya se aplica en el cliente al hacer clic
+        else
+            print("Error al activar habilidad " .. skillName .. ": " .. message)
+        end
+    end)
+end
+
+print("Skills system loaded")
+
+
+
 -- Conectar clic Extra Slot
 extraSlotButton.MouseButton1Click:Connect(function()
 	local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
